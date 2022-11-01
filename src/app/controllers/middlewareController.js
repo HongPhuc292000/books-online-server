@@ -5,6 +5,7 @@ const middlewareController = {
     const token = req.headers.token;
     if (token) {
       const accessToken = token.split(" ")[1];
+      console.log(req.cookies);
       jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
         if (err) {
           res.status(403).json("token_not_valid");

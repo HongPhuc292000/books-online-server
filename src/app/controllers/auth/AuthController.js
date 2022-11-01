@@ -6,6 +6,8 @@ const { mongooseToObject } = require("../../../utils/mongoose");
 
 const PAGE_SIZE = 10;
 
+let refreshTokens = []
+
 const authController = {
   register: async (req, res, next) => {
     const { username, password, role, fullname, email } = req.body;
@@ -38,6 +40,24 @@ const authController = {
       }
     }
   },
+  generateAccessToken: (user)=>{
+    return jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.ACCESS_TOKEN_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
+  },
+  generateRefreshToken: (user)=>{
+    return jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.REFRESH_TOKEN_SECRET,
+      {
+        expiresIn: "365d",
+      }
+    );
+  },
   login: async (req, res, next) => {
     const { username, password } = req.body;
     try {
@@ -55,16 +75,17 @@ const authController = {
           if (!validPassword) {
             res.status(400).json("password_not_correct");
           } else {
-            const accessToken = jwt.sign(
-              { id: userExist.id, role: userExist.role },
-              process.env.ACCESS_TOKEN_SECRET,
-              {
-                expiresIn: "1h",
-              }
-            );
+            const accessToken = authController.generateAccessToken(userExist);
+            const refreshToken = authController.generateRefreshToken(userExist);
             const { password, __v, ...other } = userExist._doc;
-            res.status(200).json({
-              other,
+            refreshTokens.push(refreshToken);
+            res.status(200).cookie("refreshToken", refreshToken, {
+              httpOnly: true,
+              secure: false,
+              path: "/",
+              sameSite: "strict"
+            }).json({
+              userInfo: other,
               accessToken,
             });
           }
@@ -74,28 +95,39 @@ const authController = {
       res.status(500).json("server_error");
     }
   },
-  // getListAccount(req, res, next) {
-  //   let { page, size } = req.query;
-  //   if (page && !parseInt(page)) {
-  //     page = 1;
-  //   } else {
-  //     page = parseInt(page);
-  //   }
-
-  //   const startItem = (page - 1) * size;
-
-  //   Account.find({})
-  //     .skip(startItem)
-  //     .limit(size)
-  //     .then((data) => {
-  //       if (!!data) {
-  //         res.json(data);
-  //       } else {
-  //         res.status(400).json("Unexpected Error!");
-  //       }
-  //     })
-  //     .catch((error) => res.status(500).json("Server error!"));
-  // }
+  logout: (req,res)=>{
+    res.clearCookie("refreshToken");
+    refreshTokens = refreshTokens.filter(token=>token !== req.cookies.refreshToken);
+    res.status(200).json("Logged out!");
+  },
+  refreshTokenRequest: async (req, res)=>{
+    const refreshToken = req.cookies.refreshToken;
+    if(!refreshToken){
+      res.status(401).json("not_authenticated")
+    }else{
+      if(!refreshTokens.includes(refreshToken)){
+        return res.status(403).json("refresh_token_not_valid")
+      }
+      jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user)=>{
+        if(err){
+          console.log(err);
+        }else{
+          refreshTokens = refreshTokens.filter(token=>token !== refreshToken)
+          const newAccessToken = authController.generateAccessToken(user)
+          const newRefreshToken = authController.generateRefreshToken(user)
+          refreshTokens.push(newRefreshToken);
+          res.status(200).cookie("refreshToken", newRefreshToken, {
+            httpOnly: true,
+            secure: false,
+            path: "/",
+            sameSite: "strict"
+          }).json({
+            accessToken: newAccessToken,
+          });
+        }
+      })
+    }
+  }
 };
 
 module.exports = authController;
