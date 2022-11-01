@@ -1,10 +1,15 @@
 const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+
+dotenv.config();
+
 async function connect() {
   try {
-    await mongoose.connect("mongodb://localhost:27017/books_online");
-    console.log("connect success!!");
+    await mongoose.connect(process.env.MONGODB_URL, () => {
+      console.log("Connect success!!");
+    });
   } catch (error) {
-    console.log("connect failure!!");
+    console.log("Connect failure!!");
   }
 }
 
