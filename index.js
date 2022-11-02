@@ -3,6 +3,7 @@ const morgan = require("morgan");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const db = require("./src/config/db");
 const route = require("./src/routes");
 
@@ -21,6 +22,7 @@ app.use(
 
 app.use(express.json());
 app.use(cors());
+app.use(cookieParser());
 app.use(morgan("common"));
 
 route(app);
