@@ -1,5 +1,5 @@
-const Author = require("../../models/author");
-const Book = require("../../models/book");
+const Author = require("../models/author");
+const Book = require("../models/book");
 
 const authorController = {
   addAuthor: async (req, res) => {
@@ -11,7 +11,7 @@ const authorController = {
       res.status(500).json("server_error");
     }
   },
-  getAuthor: async (req, res) => {
+  getDetailAuthor: async (req, res) => {
     try {
       const author = await Author.findById(req.params.id).populate("books");
       res.status(200).json(author);
@@ -40,7 +40,7 @@ const authorController = {
     try {
       await Book.updateMany({ author: req.params.id }, { author: null });
       await Author.findByIdAndDelete(req.params.id);
-      res.status(200).json("Delete Success!");
+      res.status(200).json("deleted");
     } catch (error) {
       res.status(500).json("server_error");
     }

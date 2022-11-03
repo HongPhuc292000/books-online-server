@@ -1,5 +1,5 @@
-const Author = require("../../models/author");
-const Book = require("../../models/book");
+const Author = require("../models/author");
+const Book = require("../models/book");
 
 const bookController = {
   addBook: async (req, res) => {
@@ -25,7 +25,7 @@ const bookController = {
       res.status(500).json("server_error");
     }
   },
-  getBook: async (req, res) => {
+  getDetailBook: async (req, res) => {
     try {
       const book = await Book.findById(req.params.id).populate("author");
       res.status(200).json(book);
@@ -49,7 +49,7 @@ const bookController = {
         { $pull: { books: req.params.id } }
       );
       await Book.findByIdAndDelete(req.params.id);
-      res.status(200).json("Delete Success!");
+      res.status(200).json("deleted");
     } catch (error) {
       res.status(500).json("server_error");
     }

@@ -1,9 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const authorController = require("../app/controllers/author/authorController");
+const authorController = require("../app/controllers/authorController");
+const middleWareController = require("../app/controllers/middlewareController");
 
-router.get("/:id", authorController.getAuthor);
+router.get("/:id", authorController.getDetailAuthor);
 router.put("/:id", authorController.updateAuthor);
+router.delete(
+  "/:id",
+  middleWareController.verifyToken,
+  middleWareController.verifyRole,
+  authorController.deleteAuthor
+);
 router.get("/", authorController.getAllAuthor);
 router.post("/", authorController.addAuthor);
 
