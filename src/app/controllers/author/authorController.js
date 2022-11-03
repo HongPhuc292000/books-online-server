@@ -11,18 +11,18 @@ const authorController = {
       res.status(500).json("server_error");
     }
   },
-  getAllAuthor: async (req, res) => {
-    try {
-      const authors = await Author.find({});
-      res.status(200).json(authors);
-    } catch (error) {
-      res.status(500).json("server_error");
-    }
-  },
   getAuthor: async (req, res) => {
     try {
       const author = await Author.findById(req.params.id).populate("books");
       res.status(200).json(author);
+    } catch (error) {
+      res.status(500).json("server_error");
+    }
+  },
+  getAllAuthor: async (req, res) => {
+    try {
+      const authors = await Author.find({});
+      res.status(200).json(authors);
     } catch (error) {
       res.status(500).json("server_error");
     }
