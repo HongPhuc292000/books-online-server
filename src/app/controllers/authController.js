@@ -2,6 +2,7 @@ const _ = require("lodash");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const RefreshToken = require("../models/refreshToken");
 const { mongooseToObject } = require("../../utils/mongoose");
 
 const PAGE_SIZE = 10;
@@ -79,6 +80,8 @@ const authController = {
             const refreshToken = authController.generateRefreshToken(userExist);
             const { password, __v, ...other } = userExist._doc;
             refreshTokens.push(refreshToken);
+            const newrefreshToken = new RefreshToken({ token: refreshToken });
+            await newrefreshToken.save();
             res
               .status(200)
               .cookie("refreshToken", refreshToken, {
@@ -107,25 +110,27 @@ const authController = {
   },
   refreshTokenRequest: async (req, res) => {
     const refreshToken = req.cookies.refreshToken;
+    const currentRefreshToken = await RefreshToken.findOne({
+      token: refreshToken,
+    });
     if (!refreshToken) {
       res.status(401).json("not_authenticated");
     } else {
-      if (!refreshTokens.includes(refreshToken)) {
+      if (!currentRefreshToken) {
         return res.status(403).json("refresh_token_not_valid");
       }
       jwt.verify(
         refreshToken,
         process.env.REFRESH_TOKEN_SECRET,
-        (err, user) => {
+        async (err, user) => {
           if (err) {
             console.log(err);
           } else {
-            refreshTokens = refreshTokens.filter(
-              (token) => token !== refreshToken
-            );
+            await RefreshToken.findByIdAndDelete(currentRefreshToken.id);
             const newAccessToken = authController.generateAccessToken(user);
             const newRefreshToken = authController.generateRefreshToken(user);
-            refreshTokens.push(newRefreshToken);
+            const newrefreshToken = new RefreshToken({ token: refreshToken });
+            await newrefreshToken.save();
             res
               .status(200)
               .cookie("refreshToken", newRefreshToken, {
