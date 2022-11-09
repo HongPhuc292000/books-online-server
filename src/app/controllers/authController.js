@@ -78,22 +78,13 @@ const authController = {
           } else {
             const accessToken = authController.generateAccessToken(userExist);
             const refreshToken = authController.generateRefreshToken(userExist);
-            const { password, __v, ...other } = userExist._doc;
             refreshTokens.push(refreshToken);
             const newrefreshToken = new RefreshToken({ token: refreshToken });
             await newrefreshToken.save();
-            res
-              .status(200)
-              .cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                secure: false,
-                path: "/",
-                sameSite: "strict",
-              })
-              .json({
-                userInfo: other,
-                accessToken,
-              });
+            res.status(200).json({
+              accessToken,
+              refreshToken,
+            });
           }
         }
       }
@@ -102,18 +93,17 @@ const authController = {
     }
   },
   logout: (req, res) => {
-    res.clearCookie("refreshToken");
     refreshTokens = refreshTokens.filter(
       (token) => token !== req.cookies.refreshToken
     );
     res.status(200).json("logged_out");
   },
   refreshTokenRequest: async (req, res) => {
-    const refreshToken = req.cookies.refreshToken;
+    const newRefreshToken = req.cookies.refreshToken;
     const currentRefreshToken = await RefreshToken.findOne({
-      token: refreshToken,
+      token: newRefreshToken,
     });
-    if (!refreshToken) {
+    if (!newRefreshToken) {
       res.status(401).json("not_authenticated");
     } else {
       if (!currentRefreshToken) {
@@ -131,17 +121,10 @@ const authController = {
             const newRefreshToken = authController.generateRefreshToken(user);
             const newrefreshToken = new RefreshToken({ token: refreshToken });
             await newrefreshToken.save();
-            res
-              .status(200)
-              .cookie("refreshToken", newRefreshToken, {
-                httpOnly: true,
-                secure: false,
-                path: "/",
-                sameSite: "strict",
-              })
-              .json({
-                accessToken: newAccessToken,
-              });
+            res.status(200).json({
+              accessToken: newAccessToken,
+              refreshToken: newRefreshToken,
+            });
           }
         }
       );
