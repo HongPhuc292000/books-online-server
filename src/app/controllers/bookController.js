@@ -4,6 +4,9 @@ const Book = require("../models/book");
 const bookController = {
   addBook: async (req, res) => {
     try {
+      if (!req.name) {
+        return res.status(404).json("name_required");
+      }
       const newBook = new Book(req.body);
       const savedBook = await newBook.save();
       if (req.body.author) {

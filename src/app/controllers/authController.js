@@ -7,8 +7,6 @@ const { mongooseToObject } = require("../../utils/mongoose");
 
 const PAGE_SIZE = 10;
 
-let refreshTokens = [];
-
 const authController = {
   register: async (req, res, next) => {
     const { username, password, role, fullname, email } = req.body;
@@ -92,11 +90,14 @@ const authController = {
       res.status(500).json("server_error");
     }
   },
-  logout: (req, res) => {
-    refreshTokens = refreshTokens.filter(
-      (token) => token !== req.cookies.refreshToken
-    );
-    res.status(200).json("logged_out");
+  logout: async (req, res) => {
+    try {
+      res.clearCookie("refreshToken");
+      await RefreshToken.findOneAndDelete({ token: req.cookies.refreshToken });
+      res.status(200).json("logged_out");
+    } catch {
+      res.status(500).json("server_error");
+    }
   },
   refreshTokenRequest: async (req, res) => {
     const newRefreshToken = req.cookies.refreshToken;
