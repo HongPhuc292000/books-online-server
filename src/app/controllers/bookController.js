@@ -30,7 +30,9 @@ const bookController = {
   },
   getDetailBook: async (req, res) => {
     try {
-      const book = await Book.findById(req.params.id).populate("author");
+      const book = await Book.findById(req.params.id)
+        .populate("author")
+        .populate("bookImg");
       res.status(200).json(book);
     } catch (error) {
       res.status(500).json("server_error");

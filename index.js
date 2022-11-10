@@ -1,6 +1,5 @@
 const express = require("express");
 const morgan = require("morgan");
-const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -19,7 +18,6 @@ app.use(
     extended: true,
   })
 );
-
 app.use(express.json());
 app.use(cors());
 app.use(cookieParser());

@@ -3,14 +3,14 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const RefreshToken = require("../models/refreshToken");
-const { mongooseToObject } = require("../../utils/mongoose");
+const userRole = require("../../utils/constants");
 
 const PAGE_SIZE = 10;
 
 const authController = {
   register: async (req, res, next) => {
     const { username, password, role, fullname, email } = req.body;
-    if (!username || !password || !role || !fullname || !email) {
+    if (!username || !password || !fullname || !email) {
       res.status(404).json("bad_request");
     } else {
       try {
@@ -26,13 +26,12 @@ const authController = {
           const newUser = new User({
             username,
             password: hashed,
-            role,
+            role: role ? role : userRole[1],
             fullname,
             email,
           });
           const createdUser = await newUser.save();
-          const accountRes = _.omit(mongooseToObject(createdUser), "__v");
-          res.json(accountRes);
+          res.json({ username: createdUser.username, password: password });
         }
       } catch {
         res.status(500).json("server_error");
@@ -76,7 +75,6 @@ const authController = {
           } else {
             const accessToken = authController.generateAccessToken(userExist);
             const refreshToken = authController.generateRefreshToken(userExist);
-            refreshTokens.push(refreshToken);
             const newrefreshToken = new RefreshToken({ token: refreshToken });
             await newrefreshToken.save();
             res.status(200).json({
@@ -92,19 +90,18 @@ const authController = {
   },
   logout: async (req, res) => {
     try {
-      res.clearCookie("refreshToken");
-      await RefreshToken.findOneAndDelete({ token: req.cookies.refreshToken });
+      await RefreshToken.findOneAndDelete({ token: req.params.refreshToken });
       res.status(200).json("logged_out");
     } catch {
       res.status(500).json("server_error");
     }
   },
   refreshTokenRequest: async (req, res) => {
-    const newRefreshToken = req.cookies.refreshToken;
+    const refreshToken = req.params.refreshToken;
     const currentRefreshToken = await RefreshToken.findOne({
-      token: newRefreshToken,
+      token: refreshToken,
     });
-    if (!newRefreshToken) {
+    if (!refreshToken) {
       res.status(401).json("not_authenticated");
     } else {
       if (!currentRefreshToken) {
@@ -115,7 +112,7 @@ const authController = {
         process.env.REFRESH_TOKEN_SECRET,
         async (err, user) => {
           if (err) {
-            console.log(err);
+            res.status(403).json("refresh_token_not_valid");
           } else {
             await RefreshToken.findByIdAndDelete(currentRefreshToken.id);
             const newAccessToken = authController.generateAccessToken(user);

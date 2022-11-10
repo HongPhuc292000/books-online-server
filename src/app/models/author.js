@@ -7,4 +7,4 @@ const authorSchema = new Schema({
   books: [{ type: mongoose.Schema.Types.ObjectId, ref: "books" }],
 });
 
-module.exports = mongoose.model("author", authorSchema);
+module.exports = mongoose.model("authors", authorSchema);
