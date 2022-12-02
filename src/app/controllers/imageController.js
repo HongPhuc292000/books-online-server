@@ -12,7 +12,7 @@ const imageController = {
         },
       });
       const savedImage = await newImage.save();
-      res.status(200).json(savedImage.img.data);
+      res.status(200).json(savedImage._id);
     } catch {
       res.status(500).json("server_error");
     }

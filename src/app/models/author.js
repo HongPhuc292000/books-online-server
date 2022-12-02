@@ -3,8 +3,9 @@ const Schema = mongoose.Schema;
 
 const authorSchema = new Schema({
   name: { type: String, require: true },
-  birthday: { type: Number },
-  books: [{ type: mongoose.Schema.Types.ObjectId, ref: "books" }],
+  yearOfBirth: { type: Number },
+  yearPassed: { type: Number },
+  description: { type: String },
 });
 
 module.exports = mongoose.model("authors", authorSchema);

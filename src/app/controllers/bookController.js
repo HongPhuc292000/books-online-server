@@ -4,7 +4,7 @@ const Book = require("../models/book");
 const bookController = {
   addBook: async (req, res) => {
     try {
-      if (!req.name) {
+      if (!req.body.name) {
         return res.status(404).json("name_required");
       }
       const newBook = new Book(req.body);
@@ -22,7 +22,7 @@ const bookController = {
   },
   getAllBooks: async (req, res) => {
     try {
-      const books = await Book.find({});
+      const books = await Book.find({}).populate("authorId");
       res.status(200).json(books);
     } catch (error) {
       res.status(500).json("server_error");

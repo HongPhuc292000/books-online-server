@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
+const genders = require("../constants/gender");
 const Schema = mongoose.Schema;
 
-const userSchema = new Schema(
+const memberSchema = new Schema(
   {
     imageUrl: { type: mongoose.Schema.Types.ObjectId, ref: "images" },
     username: String,
@@ -9,7 +10,8 @@ const userSchema = new Schema(
     fullname: String,
     email: String,
     phoneNumber: String,
-    gender: String,
+    roles: { type: [String], default: [] },
+    gender: { type: String, default: genders.OTHER },
     birthday: String,
   },
   {
@@ -17,4 +19,4 @@ const userSchema = new Schema(
   }
 );
 
-module.exports = mongoose.model("users", userSchema);
+module.exports = mongoose.model("members", memberSchema);

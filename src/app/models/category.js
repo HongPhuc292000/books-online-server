@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const categorySchema = new Schema({
-  type: String,
+  key: String,
+  name: String,
 });
 
 module.exports = mongoose.model("categories", categorySchema);
