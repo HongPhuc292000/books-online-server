@@ -6,7 +6,6 @@ const middleWareController = require("../app/controllers/middlewareController");
 router.delete(
   "/:id",
   middleWareController.verifyToken,
-  middleWareController.verifyRole,
   categoryController.deleteCategory
 );
 router.post("/", categoryController.addCategory);

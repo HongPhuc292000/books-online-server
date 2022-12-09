@@ -3,8 +3,8 @@ const Schema = mongoose.Schema;
 
 const authorSchema = new Schema({
   name: { type: String, require: true },
-  yearOfBirth: { type: Number },
-  yearPassed: { type: Number },
+  yearOfBirth: { type: String },
+  yearPassed: { type: String },
   description: { type: String },
 });
 

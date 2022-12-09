@@ -8,7 +8,6 @@ router.put("/:id", authorController.updateAuthor);
 router.delete(
   "/:id",
   middleWareController.verifyToken,
-  middleWareController.verifyRole,
   authorController.deleteAuthor
 );
 router.get("/", authorController.getAllAuthor);

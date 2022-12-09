@@ -1,43 +1,68 @@
 const Book = require("../models/book");
 const Category = require("../models/category");
+const { omitFieldsNotUsingInObject } = require("../../utils/arrayMethods");
+const { errResponse } = require("../constants/responseMessage");
 
 const categoryController = {
   addCategory: async (req, res) => {
-    const { type } = req.body;
+    const { type, name } = req.body;
     try {
-      const categories = await Category.find({ type: type });
-      if (!type) {
-        return res.status(404).json("type_required");
+      const categoriesNameExist = await Category.find({ name: name });
+      const categoriesTypeExist = await Category.find({ type: type });
+      if (!type || !name) {
+        return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      if (categories.length > 0) {
-        res.status(200).json("name_exist");
+      if (categoriesNameExist.length > 0) {
+        res.status(404).json(errResponse.NAME_EXIST);
+      } else if (categoriesTypeExist.length > 0) {
+        res.status(404).json(errResponse.TYPE_EXIST);
       } else {
-        const newCategory = new Category({ type });
+        const newCategory = new Category({ type, name });
         const savedCategory = await newCategory.save();
-        res.status(200).json(savedCategory);
+        res.status(200).json(savedCategory.id);
       }
     } catch (error) {
-      res.status(500).json("server_error");
+      res.status(500).json(errResponse.SERVER_ERROR);
     }
   },
   getAllCategories: async (req, res) => {
     try {
-      const categories = await Category.find({});
-      res.status(200).json(categories);
+      const page = parseInt(req.query.page) || 0;
+      const size = parseInt(req.query.size) || 10;
+      const searchKey = req.query.searchKey ? req.query.searchKey : "";
+      const categoriesCount = await Category.estimatedDocumentCount();
+      const categories = await Category.find({
+        $or: [
+          { name: { $regex: searchKey, $options: "i" } },
+          { type: { $regex: searchKey, $options: "i" } },
+        ],
+      })
+        .sort({ name: 1 })
+        .skip(page * size)
+        .limit(size)
+        .lean();
+      const responsCategories = omitFieldsNotUsingInObject(categories, ["__v"]);
+      res
+        .status(200)
+        .json({ data: responsCategories, total: categoriesCount, page, size });
     } catch (error) {
-      res.status(500).json("server_error");
+      res.status(500).json(errResponse.SERVER_ERROR);
     }
   },
   deleteCategory: async (req, res) => {
     try {
-      await Book.updateMany(
-        { categories: req.params.id },
-        { $pull: { categories: req.params.id } }
-      );
+      // await Book.updateMany(
+      //   { categories: req.params.id },
+      //   { $pull: { categories: req.params.id } }
+      // );
+      const { id } = req.params;
+      if (!id) {
+        return res.status(404).json(errResponse.BAD_REQUEST);
+      }
       await Category.findByIdAndDelete(req.params.id);
       res.status(200).json("deleted");
     } catch (error) {
-      res.status(500).json("server_error");
+      res.status(500).json(errResponse.SERVER_ERROR);
     }
   },
 };
