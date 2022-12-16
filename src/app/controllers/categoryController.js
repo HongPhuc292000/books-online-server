@@ -7,8 +7,8 @@ const categoryController = {
   addCategory: async (req, res) => {
     const { type, name } = req.body;
     try {
-      const categoriesNameExist = await Category.find({ name: name });
-      const categoriesTypeExist = await Category.find({ type: type });
+      const categoriesNameExist = await Category.findOne({ name: name });
+      const categoriesTypeExist = await Category.findOne({ type: type });
       if (!type || !name) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }

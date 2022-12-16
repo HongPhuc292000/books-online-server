@@ -6,15 +6,12 @@ const discountController = {
   addDiscount: async (req, res) => {
     try {
       const { type, code, value } = req.body;
-      const discountNameExist = await Discount.find({ code: code });
-      const discountTypeExist = await Discount.find({ type: type });
+      const discountCodeExist = await Discount.findOne({ code: code });
       if (!type || !code || !value) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      if (discountNameExist.length > 0) {
-        res.status(404).json(errResponse.NAME_EXIST);
-      } else if (discountTypeExist.length > 0) {
-        res.status(404).json(errResponse.TYPE_EXIST);
+      if (discountCodeExist.length > 0) {
+        res.status(404).json(errResponse.CODE_EXIST);
       } else {
         const newDiscount = new Discount(req.body);
         const savedDiscount = await newDiscount.save();

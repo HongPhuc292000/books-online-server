@@ -4,11 +4,18 @@ const { omitFieldsNotUsingInObject } = require("../../utils/arrayMethods");
 
 const memberController = {
   addMember: async (req, res) => {
-    console.log(req.body);
     try {
       const { username, password, fullname, phoneNumber, birthday } = req.body;
       if (!username || !password || !fullname || !phoneNumber || !birthday) {
-        return res.status(404).json("bad_request");
+        return res.status(404).json(errResponse.BAD_REQUEST);
+      }
+      const usernameExist = await Member.findOne({ username: username });
+      const phoneExist = await Member.findOne({ phoneNumber: phoneNumber });
+      if (usernameExist) {
+        return res.status(404).json(errResponse.USERNAME_EXIST);
+      }
+      if (phoneExist) {
+        return res.status(404).json(errResponse.PHONE_EXIST);
       }
       const newMember = new Member(req.body);
       const savedMember = await newMember.save();
@@ -19,10 +26,23 @@ const memberController = {
   },
   editMember: async (req, res) => {
     try {
-      if (!req.params.id) {
+      const { id } = req.params;
+      if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      const member = await Member.findById(req.params.id);
+      const { username, phoneNumber } = req.body;
+      const usernameExist = await Member.findOne({ username: username });
+      const phoneExist = await Member.findOne({
+        phoneNumber: phoneNumber,
+      });
+
+      if (usernameExist && usernameExist.id !== id) {
+        return res.status(404).json(errResponse.USERNAME_EXIST);
+      }
+      if (phoneExist && phoneExist.id !== id) {
+        return res.status(404).json(errResponse.PHONE_EXIST);
+      }
+      const member = await Member.findById(id);
       await member.updateOne({ $set: req.body });
       res.status(200).json(member.id);
     } catch (error) {
@@ -34,18 +54,42 @@ const memberController = {
       const page = req.query.page || 0;
       const size = req.query.size || 10;
       const searchKey = req.query.searchKey ? req.query.searchKey : "";
+      const roles = req.query.roles;
       const memberCount = await Member.estimatedDocumentCount();
-
-      const members = await Member.find({
-        $or: [
-          { fullname: { $regex: searchKey, $options: "i" } },
-          { phoneNumber: { $regex: searchKey, $options: "i" } },
-        ],
-      })
-        .sort({ fullname: 1 })
-        .skip(page * size)
-        .limit(size)
-        .lean();
+      let members;
+      if (!roles) {
+        members = await Member.find({
+          $or: [
+            {
+              fullname: { $regex: searchKey, $options: "i" },
+            },
+            {
+              phoneNumber: { $regex: searchKey, $options: "i" },
+            },
+          ],
+        })
+          .sort({ fullname: 1 })
+          .skip(page * size)
+          .limit(size)
+          .lean();
+      } else {
+        members = await Member.find({
+          $or: [
+            {
+              fullname: { $regex: searchKey, $options: "i" },
+              roles: { $in: roles },
+            },
+            {
+              phoneNumber: { $regex: searchKey, $options: "i" },
+              roles: { $in: roles },
+            },
+          ],
+        })
+          .sort({ fullname: 1 })
+          .skip(page * size)
+          .limit(size)
+          .lean();
+      }
       const responsMembers = omitFieldsNotUsingInObject(members, [
         "password",
         "roles",

@@ -22,8 +22,8 @@ const authorController = {
       if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      const author = await Author.findById(id);
-      const { __v, ...other } = author._doc;
+      const author = await Author.findById(id).lean();
+      const { __v, ...other } = author;
       res.status(200).json(other);
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
@@ -55,10 +55,17 @@ const authorController = {
   },
   updateAuthor: async (req, res) => {
     try {
-      if (!req.params.id) {
+      const { id } = req.params;
+      if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      const author = await Author.findById(req.params.id);
+      const nameExist = await Author.findOne({
+        name: req.body.name,
+      });
+      if (nameExist && nameExist.id !== id) {
+        return res.status(404).json(errResponse.NAME_EXIST);
+      }
+      const author = await Author.findById(id);
       await author.updateOne({ $set: req.body });
       res.status(200).json(author.id);
     } catch (error) {
