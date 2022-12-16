@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const genders = require("../constants/gender");
+
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema(
@@ -9,7 +11,7 @@ const userSchema = new Schema(
     fullname: String,
     email: String,
     phoneNumber: String,
-    gender: String,
+    gender: { type: String, default: genders.OTHER },
     birthday: String,
   },
   {

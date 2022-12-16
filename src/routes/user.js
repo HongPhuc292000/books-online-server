@@ -2,11 +2,11 @@ const express = require("express");
 const router = express.Router();
 const userController = require("../app/controllers/userController");
 const middleWareController = require("../app/controllers/middlewareController");
+const roles = require("../app/constants/roles");
 
 router.delete(
   "/:id",
   middleWareController.verifyToken,
-  middleWareController.verifyRole,
   userController.deleteUser
 );
 router.get(

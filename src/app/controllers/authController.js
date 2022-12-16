@@ -5,8 +5,6 @@ const User = require("../models/user");
 const RefreshToken = require("../models/refreshToken");
 const userRole = require("../../utils/constants");
 
-const PAGE_SIZE = 10;
-
 const authController = {
   register: async (req, res, next) => {
     const { username, password, role, fullname, email } = req.body;
@@ -40,7 +38,7 @@ const authController = {
   },
   generateAccessToken: (user) => {
     return jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id, roles: user.roles },
       process.env.ACCESS_TOKEN_SECRET,
       {
         expiresIn: "1h",
@@ -49,7 +47,7 @@ const authController = {
   },
   generateRefreshToken: (user) => {
     return jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id, roles: user.roles },
       process.env.REFRESH_TOKEN_SECRET,
       {
         expiresIn: "365d",

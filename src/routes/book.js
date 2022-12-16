@@ -8,7 +8,6 @@ router.put("/:id", bookController.updateBook);
 router.delete(
   "/:id",
   middleWareController.verifyToken,
-  middleWareController.verifyRole,
   bookController.deleteBook
 );
 router.post("/", bookController.addBook);
