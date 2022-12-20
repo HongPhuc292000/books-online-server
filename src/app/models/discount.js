@@ -8,6 +8,8 @@ const discountSchema = new Schema({
   value: { type: Number, require: true },
   amount: { type: Number, default: 0 },
   used: { type: Number, default: 0 },
+  exp: { type: Number },
+  enable: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model("discounts", discountSchema);

@@ -5,7 +5,6 @@ const userRouter = require("./user");
 const memberRouter = require("./member");
 const profileRouter = require("./profile");
 const categoryRouter = require("./category");
-const imageRouter = require("./image");
 const adminAuthRouter = require("./adminAuth");
 const discountRouter = require("./discount");
 
@@ -18,7 +17,6 @@ function route(app) {
   app.use("/api/v1/member", memberRouter);
   app.use("/api/v1/profile", profileRouter);
   app.use("/api/v1/category", categoryRouter);
-  app.use("/api/v1/image", imageRouter);
   app.use("/api/v1/discount", discountRouter);
 }
 

@@ -1,3 +1,5 @@
+const moment = require("moment");
+const { omit } = require("lodash");
 const Discount = require("../models/discount");
 const { omitFieldsNotUsingInObject } = require("../../utils/arrayMethods");
 const { errResponse } = require("../constants/responseMessage");
@@ -5,15 +7,20 @@ const { errResponse } = require("../constants/responseMessage");
 const discountController = {
   addDiscount: async (req, res) => {
     try {
-      const { type, code, value } = req.body;
+      const { type, code, value, exp } = req.body;
       const discountCodeExist = await Discount.findOne({ code: code });
-      if (!type || !code || !value) {
+      if (!type || !code || !value || !exp) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      if (discountCodeExist.length > 0) {
+      if (discountCodeExist) {
         res.status(404).json(errResponse.CODE_EXIST);
       } else {
-        const newDiscount = new Discount(req.body);
+        const formDataNoExp = omit(req.body, ["exp"]);
+        const expTimeStamp = moment(req.body.exp).valueOf();
+        const newDiscount = new Discount({
+          ...formDataNoExp,
+          exp: expTimeStamp,
+        });
         const savedDiscount = await newDiscount.save();
         res.status(200).json(savedDiscount.id);
       }
@@ -27,9 +34,23 @@ const discountController = {
       if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      const discount = await Discount.findById(req.params.id);
-      await discount.updateOne({ $set: req.body });
-      res.status(200).json(discount.id);
+      const discountCodeExist = await Discount.findOne({ code: req.body.code });
+      if (discountCodeExist && discountCodeExist.id !== id) {
+        return res.status(404).json(errResponse.CODE_EXIST);
+      }
+      if (req.body.exp) {
+        const formDataNoExp = omit(req.body, ["exp"]);
+        const expTimeStamp = moment(req.body.exp).valueOf();
+        const discount = await Discount.findById(req.params.id);
+        await discount.updateOne({
+          $set: { ...formDataNoExp, exp: expTimeStamp },
+        });
+        res.status(200).json(discount.id);
+      } else {
+        const discount = await Discount.findById(req.params.id);
+        await discount.updateOne({ $set: req.body });
+        res.status(200).json(discount.id);
+      }
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
     }
@@ -49,24 +70,41 @@ const discountController = {
   },
   getAllDiscounts: async (req, res) => {
     try {
-      const page = parseInt(req.query.page) || 0;
-      const size = parseInt(req.query.size) || 10;
-      const searchKey = req.query.searchKey ? req.query.searchKey : "";
+      const { searchKey, minDate, maxDate, page, size } = req.query;
+      const pageParam = parseInt(page) || 0;
+      const sizeParam = parseInt(size) || 10;
+      const searchText = searchKey ? searchKey : "";
+      const fiveYearsAgo = moment().get("y") + 5;
+      const minDateParam = minDate
+        ? minDate
+        : moment("1970-01-01T00:00:00+07:00").valueOf();
+      const maxDateParam = maxDate
+        ? maxDate
+        : moment(`${fiveYearsAgo}-01-01T00:00:00+07:00`).valueOf();
       const discountsCount = await Discount.estimatedDocumentCount();
       const discounts = await Discount.find({
         $or: [
-          { code: { $regex: searchKey, $options: "i" } },
-          { type: { $regex: searchKey, $options: "i" } },
+          {
+            code: { $regex: searchText, $options: "i" },
+            exp: { $gte: minDateParam, $lte: maxDateParam },
+          },
+          {
+            type: { $regex: searchText, $options: "i" },
+            exp: { $gte: minDateParam, $lte: maxDateParam },
+          },
         ],
       })
         .sort({ code: 1 })
-        .skip(page * size)
-        .limit(size)
+        .skip(pageParam * sizeParam)
+        .limit(sizeParam)
         .lean();
       const responseDiscount = omitFieldsNotUsingInObject(discounts, ["__v"]);
-      res
-        .status(200)
-        .json({ data: responseDiscount, total: discountsCount, page, size });
+      res.status(200).json({
+        data: responseDiscount,
+        total: discountsCount,
+        page: pageParam,
+        size: sizeParam,
+      });
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
     }

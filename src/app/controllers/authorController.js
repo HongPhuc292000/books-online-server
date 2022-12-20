@@ -6,7 +6,8 @@ const { errResponse } = require("../constants/responseMessage");
 const authorController = {
   addAuthor: async (req, res) => {
     try {
-      if (!req.body.name) {
+      const { imageUrl, name } = req.body;
+      if (!imageUrl || !name) {
         return res.status(404).json(errResponse.NAME_REQUIRED);
       }
       const newAuthor = new Author(req.body);
