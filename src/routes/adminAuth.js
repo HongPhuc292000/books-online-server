@@ -10,5 +10,10 @@ router.post(
   middlewareController.verifyToken,
   adminAuthController.logout
 );
+router.get(
+  "/roles",
+  middlewareController.verifyToken,
+  adminAuthController.getAllRoles
+);
 
 module.exports = router;

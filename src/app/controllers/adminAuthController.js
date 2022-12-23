@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const Member = require("../models/member");
 const RefreshToken = require("../models/refreshToken");
 const { errResponse } = require("../constants/responseMessage");
+const roles = require("../constants/roles");
 
 const amindAuthController = {
   generateAccessToken: (member) => {
@@ -22,7 +23,7 @@ const amindAuthController = {
       }
     );
   },
-  login: async (req, res, next) => {
+  login: async (req, res) => {
     const { username, password } = req.body;
     try {
       if (!username || !password) {
@@ -95,6 +96,14 @@ const amindAuthController = {
           }
         }
       );
+    }
+  },
+  getAllRoles: async (res) => {
+    try {
+      var rolesArray = Object.keys(roles);
+      res.status(200).json(rolesArray);
+    } catch {
+      res.status(500).json(errResponse.SERVER_ERROR);
     }
   },
 };

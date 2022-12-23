@@ -2,12 +2,13 @@ const Author = require("../models/author");
 const Book = require("../models/book");
 const { omitFieldsNotUsingInObject } = require("../../utils/arrayMethods");
 const { errResponse } = require("../constants/responseMessage");
+const { deleteImage } = require("../firebase/firebaseServices");
 
 const authorController = {
   addAuthor: async (req, res) => {
     try {
-      const { imageUrl, name } = req.body;
-      if (!imageUrl || !name) {
+      const { name } = req.body;
+      if (!name) {
         return res.status(404).json(errResponse.NAME_REQUIRED);
       }
       const newAuthor = new Author(req.body);
@@ -32,23 +33,24 @@ const authorController = {
   },
   getAllAuthor: async (req, res) => {
     try {
-      const page = req.query.page || 0;
-      const size = req.query.size || 10;
-      const searchKey = req.query.searchKey ? req.query.searchKey : "";
+      const { page, size, searchKey } = req.query;
+      const pageParam = page ? parseInt(page) : 0;
+      const sizeParam = size ? parseInt(size) : 10;
+      const searchParam = searchKey ? searchKey : "";
       const authorCount = await Author.estimatedDocumentCount();
       const authors = await Author.find({
-        name: { $regex: searchKey, $options: "i" },
+        name: { $regex: searchParam, $options: "i" },
       })
         .sort({ name: 1 })
-        .skip(page * size)
-        .limit(size)
+        .skip(pageParam * sizeParam)
+        .limit(sizeParam)
         .lean();
       const responsAuthors = omitFieldsNotUsingInObject(authors, ["__v"]);
       res.status(200).json({
         data: responsAuthors,
         total: authorCount,
-        page,
-        size,
+        page: pageParam,
+        size: sizeParam,
       });
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
@@ -77,6 +79,11 @@ const authorController = {
     try {
       if (!req.params.id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
+      }
+      const author = await Author.findById(req.params.id).lean();
+      const imageUrl = author.imageUrl;
+      if (imageUrl) {
+        deleteImage(imageUrl);
       }
       // await Book.updateMany({ authorId: req.params.id }, { authorId: null });
       await Author.findByIdAndDelete(req.params.id);

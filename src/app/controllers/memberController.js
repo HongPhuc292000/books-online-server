@@ -5,17 +5,22 @@ const { omitFieldsNotUsingInObject } = require("../../utils/arrayMethods");
 const memberController = {
   addMember: async (req, res) => {
     try {
-      const { username, password, fullname, phoneNumber, birthday } = req.body;
+      const { username, password, fullname, phoneNumber, birthday, email } =
+        req.body;
       if (!username || !password || !fullname || !phoneNumber || !birthday) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
       const usernameExist = await Member.findOne({ username: username });
       const phoneExist = await Member.findOne({ phoneNumber: phoneNumber });
+      const emailExist = await Member.findOne({ email: email });
       if (usernameExist) {
         return res.status(404).json(errResponse.USERNAME_EXIST);
       }
       if (phoneExist) {
         return res.status(404).json(errResponse.PHONE_EXIST);
+      }
+      if (emailExist) {
+        return res.status(404).json(errResponse.EMAIL_EXIST);
       }
       const newMember = new Member(req.body);
       const savedMember = await newMember.save();
@@ -121,10 +126,16 @@ const memberController = {
   },
   deleteMember: async (req, res) => {
     try {
+      const { id } = req.params;
       if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      await Member.findById(req.params.id);
+      const member = await Member.findById(id).lean();
+      const imageUrl = member.imageUrl;
+      if (imageUrl) {
+        deleteImage(imageUrl);
+      }
+      await Member.findOneAndDelete(id);
       res.status(200).json("deleted");
     } catch {
       res.status(500).json(errResponse.SERVER_ERROR);

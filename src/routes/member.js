@@ -12,11 +12,6 @@ router.get(
 );
 router.put("/:id", memberController.editMember);
 router.get("/", memberController.getAllMember);
-router.post(
-  "/",
-  middleWareController.verifyToken,
-  middleWareController.verifyRoles(roles.ADD_MEMBER),
-  memberController.addMember
-);
+router.post("/", middleWareController.verifyToken, memberController.addMember);
 
 module.exports = router;

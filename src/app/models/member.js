@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 
 const memberSchema = new Schema(
   {
-    imageUrl: { type: mongoose.Schema.Types.ObjectId, ref: "images" },
+    imageUrl: { String, default: "" },
     username: String,
     password: String,
     fullname: String,
