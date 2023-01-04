@@ -98,10 +98,13 @@ const amindAuthController = {
       );
     }
   },
-  getAllRoles: async (res) => {
+  getAllRoles: async (req, res) => {
     try {
-      var rolesArray = Object.keys(roles);
-      res.status(200).json(rolesArray);
+      const rolesArray = Object.keys(roles);
+      const responseRoles = rolesArray.filter(
+        (item) => item !== roles.SUPER_ADMIN
+      );
+      res.status(200).json(responseRoles);
     } catch {
       res.status(500).json(errResponse.SERVER_ERROR);
     }

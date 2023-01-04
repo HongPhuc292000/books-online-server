@@ -1,6 +1,7 @@
 const Member = require("../models/member");
 const { errResponse } = require("../constants/responseMessage");
 const { omitFieldsNotUsingInObject } = require("../../utils/arrayMethods");
+const { deleteImage } = require("../firebase/firebaseServices");
 
 const memberController = {
   addMember: async (req, res) => {
@@ -26,7 +27,7 @@ const memberController = {
       const savedMember = await newMember.save();
       res.status(200).json(savedMember.id);
     } catch (error) {
-      res.status(500).json("server_error");
+      res.status(500).json(errResponse.SERVER_ERROR);
     }
   },
   editMember: async (req, res) => {
@@ -56,43 +57,44 @@ const memberController = {
   },
   getAllMember: async (req, res) => {
     try {
-      const page = req.query.page || 0;
-      const size = req.query.size || 10;
-      const searchKey = req.query.searchKey ? req.query.searchKey : "";
-      const roles = req.query.roles;
+      const { page, size, searchKey, roles } = req.query;
+      const pageParam = page ? parseInt(page) : 0;
+      const sizeParam = size ? parseInt(size) : 10;
+      const searchParam = searchKey ? searchKey : "";
+      const rolesParam = roles;
       const memberCount = await Member.estimatedDocumentCount();
       let members;
       if (!roles) {
         members = await Member.find({
           $or: [
             {
-              fullname: { $regex: searchKey, $options: "i" },
+              fullname: { $regex: searchParam, $options: "i" },
             },
             {
-              phoneNumber: { $regex: searchKey, $options: "i" },
+              phoneNumber: { $regex: searchParam, $options: "i" },
             },
           ],
         })
           .sort({ fullname: 1 })
-          .skip(page * size)
-          .limit(size)
+          .skip(pageParam * sizeParam)
+          .limit(sizeParam)
           .lean();
       } else {
         members = await Member.find({
           $or: [
             {
               fullname: { $regex: searchKey, $options: "i" },
-              roles: { $in: roles },
+              roles: { $in: rolesParam },
             },
             {
               phoneNumber: { $regex: searchKey, $options: "i" },
-              roles: { $in: roles },
+              roles: { $in: rolesParam },
             },
           ],
         })
           .sort({ fullname: 1 })
-          .skip(page * size)
-          .limit(size)
+          .skip(pageParam * sizeParam)
+          .limit(sizeParam)
           .lean();
       }
       const responsMembers = omitFieldsNotUsingInObject(members, [
@@ -104,9 +106,12 @@ const memberController = {
         "updatedAt",
         "__v",
       ]);
-      res
-        .status(200)
-        .json({ data: responsMembers, total: memberCount, page, size });
+      res.status(200).json({
+        data: responsMembers,
+        total: memberCount,
+        page: pageParam,
+        size: sizeParam,
+      });
     } catch {
       res.status(500).json(errResponse.SERVER_ERROR);
     }

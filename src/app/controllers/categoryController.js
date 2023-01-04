@@ -27,8 +27,9 @@ const categoryController = {
   },
   getAllCategories: async (req, res) => {
     try {
-      const page = parseInt(req.query.page) || 0;
-      const size = parseInt(req.query.size) || 10;
+      const { page, size } = req.query;
+      const pageParam = page ? parseInt(page) : 0;
+      const sizeParam = size ? parseInt(size) : 10;
       const searchKey = req.query.searchKey ? req.query.searchKey : "";
       const categoriesCount = await Category.estimatedDocumentCount();
       const categories = await Category.find({
@@ -38,13 +39,18 @@ const categoryController = {
         ],
       })
         .sort({ name: 1 })
-        .skip(page * size)
-        .limit(size)
+        .skip(pageParam * sizeParam)
+        .limit(sizeParam)
         .lean();
       const responsCategories = omitFieldsNotUsingInObject(categories, ["__v"]);
       res
         .status(200)
-        .json({ data: responsCategories, total: categoriesCount, page, size });
+        .json({
+          data: responsCategories,
+          total: categoriesCount,
+          page: pageParam,
+          size: sizeParam,
+        });
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
     }

@@ -71,8 +71,8 @@ const discountController = {
   getAllDiscounts: async (req, res) => {
     try {
       const { searchKey, minDate, maxDate, page, size } = req.query;
-      const pageParam = parseInt(page) || 0;
-      const sizeParam = parseInt(size) || 10;
+      const pageParam = page ? parseInt(page) : 0;
+      const sizeParam = size ? parseInt(size) : 10;
       const searchText = searchKey ? searchKey : "";
       const fiveYearsAgo = moment().get("y") + 5;
       const minDateParam = minDate

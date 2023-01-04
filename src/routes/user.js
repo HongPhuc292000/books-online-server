@@ -4,16 +4,9 @@ const userController = require("../app/controllers/userController");
 const middleWareController = require("../app/controllers/middlewareController");
 const roles = require("../app/constants/roles");
 
-router.delete(
-  "/:id",
-  middleWareController.verifyToken,
-  userController.deleteUser
-);
-router.get(
-  "/:id",
-  middleWareController.verifyToken,
-  userController.getDetailUser
-);
-router.get("/", middleWareController.verifyToken, userController.getAllUser);
+router.delete("/:id", userController.deleteUser);
+router.get("/:id", userController.getDetailUser);
+router.get("/", userController.getAllUsers);
+router.post("/", userController.addUser);
 
 module.exports = router;

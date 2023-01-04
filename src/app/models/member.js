@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 
 const memberSchema = new Schema(
   {
-    imageUrl: { String, default: "" },
+    imageUrl: { type: String, default: "" },
     username: String,
     password: String,
     fullname: String,
