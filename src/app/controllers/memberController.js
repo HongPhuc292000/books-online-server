@@ -6,8 +6,15 @@ const { deleteImage } = require("../firebase/firebaseServices");
 const memberController = {
   addMember: async (req, res) => {
     try {
-      const { username, password, fullname, phoneNumber, birthday, email } =
-        req.body;
+      const {
+        username,
+        password,
+        fullname,
+        phoneNumber,
+        birthday,
+        email,
+        imageUrl,
+      } = req.body;
       if (!username || !password || !fullname || !phoneNumber || !birthday) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
@@ -15,18 +22,30 @@ const memberController = {
       const phoneExist = await Member.findOne({ phoneNumber: phoneNumber });
       const emailExist = await Member.findOne({ email: email });
       if (usernameExist) {
+        if (imageUrl) {
+          deleteImage(imageUrl);
+        }
         return res.status(404).json(errResponse.USERNAME_EXIST);
       }
       if (phoneExist) {
+        if (imageUrl) {
+          deleteImage(imageUrl);
+        }
         return res.status(404).json(errResponse.PHONE_EXIST);
       }
       if (emailExist) {
+        if (imageUrl) {
+          deleteImage(imageUrl);
+        }
         return res.status(404).json(errResponse.EMAIL_EXIST);
       }
       const newMember = new Member(req.body);
       const savedMember = await newMember.save();
       res.status(200).json(savedMember.id);
     } catch (error) {
+      if (req.body.imageUrl) {
+        deleteImage(req.body.imageUrl);
+      }
       res.status(500).json(errResponse.SERVER_ERROR);
     }
   },
@@ -36,17 +55,21 @@ const memberController = {
       if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      const { username, phoneNumber } = req.body;
+      const { username, phoneNumber, email } = req.body;
       const usernameExist = await Member.findOne({ username: username });
       const phoneExist = await Member.findOne({
         phoneNumber: phoneNumber,
       });
+      const emailExist = await Member.findOne({ email: email });
 
       if (usernameExist && usernameExist.id !== id) {
         return res.status(404).json(errResponse.USERNAME_EXIST);
       }
       if (phoneExist && phoneExist.id !== id) {
         return res.status(404).json(errResponse.PHONE_EXIST);
+      }
+      if (emailExist && emailExist.id !== id) {
+        return res.status(404).json(errResponse.EMAIL_EXIST);
       }
       const member = await Member.findById(id);
       await member.updateOne({ $set: req.body });
@@ -123,7 +146,7 @@ const memberController = {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
       const member = await Member.findById(id);
-      const { __v, ...others } = member._doc;
+      const { __v, createdAt, updatedAt, ...others } = member._doc;
       res.status(200).json(others);
     } catch {
       res.status(500).json(errResponse.SERVER_ERROR);

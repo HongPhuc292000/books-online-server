@@ -8,6 +8,7 @@ const errResponse = {
   USERNAME_EXIST: "username_exist",
   PHONE_EXIST: "phone_exist",
   EMAIL_EXIST: "email_exist",
+  USED_CODE: "used_code",
   TOKEN_NOT_VALID: "token_not_valid",
   NOT_ALLOWED: "not_allowed",
   NOT_SIGN: "not_sign",

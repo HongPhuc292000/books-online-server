@@ -6,25 +6,74 @@ const { deleteImage } = require("../firebase/firebaseServices");
 const userController = {
   addUser: async (req, res) => {
     try {
-      const { username, password, fullname, phoneNumber, email } = req.body;
-      if (!username || !password || !phoneNumber) {
+      const {
+        username,
+        password,
+        fullname,
+        phoneNumber,
+        email,
+        imageUrl,
+        birthday,
+      } = req.body;
+      if (!username || !password || !phoneNumber || !birthday) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
       const usernameExist = await User.findOne({ username: username });
       const phoneExist = await User.findOne({ phoneNumber: phoneNumber });
       const emailExist = await User.findOne({ email: email });
       if (usernameExist) {
+        if (imageUrl) {
+          deleteImage(imageUrl);
+        }
         return res.status(404).json(errResponse.USERNAME_EXIST);
       }
       if (phoneExist) {
+        if (imageUrl) {
+          deleteImage(imageUrl);
+        }
         return res.status(404).json(errResponse.PHONE_EXIST);
       }
       if (emailExist) {
+        if (imageUrl) {
+          deleteImage(imageUrl);
+        }
         return res.status(404).json(errResponse.EMAIL_EXIST);
       }
       const newUser = new User({ ...req.body, fullname: fullname || username });
       const savedUser = await newUser.save();
       res.status(200).json(savedUser.id);
+    } catch (error) {
+      if (req.body.imageUrl) {
+        deleteImage(req.body.imageUrl);
+      }
+      res.status(500).json(errResponse.SERVER_ERROR);
+    }
+  },
+  editUser: async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        return res.status(404).json(errResponse.BAD_REQUEST);
+      }
+      const { username, phoneNumber, email } = req.body;
+      const usernameExist = await User.findOne({ username: username });
+      const phoneExist = await User.findOne({
+        phoneNumber: phoneNumber,
+      });
+      const emailExist = await User.findOne({ email: email });
+
+      if (usernameExist && usernameExist.id !== id) {
+        return res.status(404).json(errResponse.USERNAME_EXIST);
+      }
+      if (phoneExist && phoneExist.id !== id) {
+        return res.status(404).json(errResponse.PHONE_EXIST);
+      }
+      if (emailExist && emailExist.id !== id) {
+        return res.status(404).json(errResponse.EMAIL_EXIST);
+      }
+      const user = await User.findById(id);
+      await user.updateOne({ $set: req.body });
+      res.status(200).json(user.id);
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
     }
@@ -76,7 +125,7 @@ const userController = {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
       const user = await User.findById(id);
-      const { __v, ...others } = user._doc;
+      const { __v, createdAt, updatedAt, ...others } = user._doc;
       res.status(200).json(others);
     } catch {
       res.status(500).json(errResponse.SERVER_ERROR);

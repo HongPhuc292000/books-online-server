@@ -4,7 +4,7 @@ const { ref, deleteObject } = require("firebase/storage");
 const deleteImage = async (url) => {
   if (url) {
     const oldRef = ref(storage, url);
-    deleteObject(oldRef).catch(() => {
+    await deleteObject(oldRef).catch(() => {
       throw new Error("server_error");
     });
   }

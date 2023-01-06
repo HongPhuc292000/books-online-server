@@ -6,6 +6,7 @@ const roles = require("../app/constants/roles");
 
 router.delete("/:id", userController.deleteUser);
 router.get("/:id", userController.getDetailUser);
+router.put("/:id", userController.editUser);
 router.get("/", userController.getAllUsers);
 router.post("/", userController.addUser);
 

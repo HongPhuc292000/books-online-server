@@ -117,7 +117,7 @@ const discountController = {
       }
       const discount = await Discount.findById(req.params.id).lean();
       if (discount.used) {
-        return res.status(404).json("used_code");
+        return res.status(404).json(errResponse.USED_CODE);
       }
       res.status(200).json("deleted");
     } catch (error) {
