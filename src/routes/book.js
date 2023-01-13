@@ -4,10 +4,10 @@ const bookController = require("../app/controllers/bookController");
 const middleWareController = require("../app/controllers/middlewareController");
 
 router.get("/:id", bookController.getDetailBook);
-router.put("/:id", bookController.updateBook);
+router.put("/:id", bookController.editBook);
 router.delete(
   "/:id",
-  middleWareController.verifyToken,
+  // middleWareController.verifyToken,
   bookController.deleteBook
 );
 router.post("/", bookController.addBook);

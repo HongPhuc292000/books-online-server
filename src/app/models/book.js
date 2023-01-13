@@ -1,21 +1,22 @@
 const mongoose = require("mongoose");
+const statuses = require("../constants/status");
 const Schema = mongoose.Schema;
 
 const bookSchema = new Schema({
-  imageUrl: { type: mongoose.Schema.Types.ObjectId, ref: "images" },
-  authorId: { type: mongoose.Schema.Types.ObjectId, ref: "authors" },
+  imageUrl: { type: String, require: true },
   name: { type: String, require: true },
-  view: Number,
+  authorId: { type: mongoose.Schema.Types.ObjectId, ref: "authors" },
+  view: { type: Number, default: 0 },
   isFull: { type: Boolean, default: false },
   publisherId: { type: mongoose.Schema.Types.ObjectId, ref: "publishers" },
   amount: { type: Number, default: 0 },
-  categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "categories" }],
+  categoryIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "categories" }],
   content: { type: Object },
-  currentFee: Number,
-  preferentialFee: Number,
-  categoryKeys: [String],
-  bookCode: String,
-  createdDate: { type: Date, default: Date.now },
+  defaultPrice: { type: Number, require: true },
+  reducedPrice: Number,
+  bookCode: { type: String, require: true },
+  status: { type: String, default: statuses.DISABLE },
+  createdAt: { type: Date, default: new Date() },
 });
 
 module.exports = mongoose.model("books", bookSchema);

@@ -86,41 +86,37 @@ const memberController = {
       const searchParam = searchKey ? searchKey : "";
       const rolesParam = roles;
       const memberCount = await Member.estimatedDocumentCount();
-      let members;
-      if (!roles) {
-        members = await Member.find({
-          $or: [
+      let queries = {
+        $and: [
+          {
+            $or: [
+              {
+                fullname: { $regex: searchParam, $options: "i" },
+              },
+              {
+                phoneNumber: { $regex: searchParam, $options: "i" },
+              },
+            ],
+          },
+        ],
+      };
+      if (roles) {
+        queries = {
+          ...queries,
+          $and: [
+            ...queries.$and,
             {
-              fullname: { $regex: searchParam, $options: "i" },
-            },
-            {
-              phoneNumber: { $regex: searchParam, $options: "i" },
-            },
-          ],
-        })
-          .sort({ fullname: 1 })
-          .skip(pageParam * sizeParam)
-          .limit(sizeParam)
-          .lean();
-      } else {
-        members = await Member.find({
-          $or: [
-            {
-              fullname: { $regex: searchKey, $options: "i" },
-              roles: { $in: rolesParam },
-            },
-            {
-              phoneNumber: { $regex: searchKey, $options: "i" },
               roles: { $in: rolesParam },
             },
           ],
-        })
-          .sort({ fullname: 1 })
-          .skip(pageParam * sizeParam)
-          .limit(sizeParam)
-          .lean();
+        };
       }
-      const responsMembers = omitFieldsNotUsingInObject(members, [
+      const members = await Member.find(queries)
+        .sort({ fullname: 1 })
+        .skip(pageParam * sizeParam)
+        .limit(sizeParam)
+        .lean();
+      const responseMembers = omitFieldsNotUsingInObject(members, [
         "password",
         "roles",
         "gender",
@@ -130,7 +126,7 @@ const memberController = {
         "__v",
       ]);
       res.status(200).json({
-        data: responsMembers,
+        data: responseMembers,
         total: memberCount,
         page: pageParam,
         size: sizeParam,
@@ -163,7 +159,7 @@ const memberController = {
       if (imageUrl) {
         deleteImage(imageUrl);
       }
-      await Member.findOneAndDelete(id);
+      await Member.findByIdAndDelete(id);
       res.status(200).json("deleted");
     } catch {
       res.status(500).json(errResponse.SERVER_ERROR);
