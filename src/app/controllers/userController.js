@@ -55,26 +55,41 @@ const userController = {
       if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      const { username, phoneNumber, email } = req.body;
+      const { username, phoneNumber, email, imageUrl } = req.body;
       const usernameExist = await User.findOne({ username: username });
       const phoneExist = await User.findOne({
         phoneNumber: phoneNumber,
       });
       const emailExist = await User.findOne({ email: email });
-
       if (usernameExist && usernameExist.id !== id) {
+        if (imageUrl) {
+          deleteImage(imageUrl);
+        }
         return res.status(404).json(errResponse.USERNAME_EXIST);
       }
       if (phoneExist && phoneExist.id !== id) {
+        if (imageUrl) {
+          deleteImage(imageUrl);
+        }
         return res.status(404).json(errResponse.PHONE_EXIST);
       }
       if (emailExist && emailExist.id !== id) {
+        if (imageUrl) {
+          deleteImage(imageUrl);
+        }
         return res.status(404).json(errResponse.EMAIL_EXIST);
       }
       const user = await User.findById(id);
+      if ((!imageUrl && user.imageUrl) || user.imageUrl !== imageUrl) {
+        deleteImage(user.imageUrl);
+      }
       await user.updateOne({ $set: req.body });
       res.status(200).json(user.id);
     } catch (error) {
+      const { imageUrl } = req.body;
+      if (imageUrl) {
+        deleteImage(imageUrl);
+      }
       res.status(500).json(errResponse.SERVER_ERROR);
     }
   },

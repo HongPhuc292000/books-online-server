@@ -3,6 +3,7 @@ const router = express.Router();
 const categoryController = require("../app/controllers/categoryController");
 const middleWareController = require("../app/controllers/middlewareController");
 
+router.get("/allCategories", categoryController.getCategoryToSelect);
 router.delete(
   "/:id",
   middleWareController.verifyToken,

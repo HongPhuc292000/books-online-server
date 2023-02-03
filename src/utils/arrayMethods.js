@@ -6,4 +6,10 @@ const omitFieldsNotUsingInObject = (array, fields) => {
   });
 };
 
-module.exports = { omitFieldsNotUsingInObject };
+const pickFieldsUsingInObject = (array, fields) => {
+  return array.map((item) => {
+    return _.pick(item, fields);
+  });
+};
+
+module.exports = { omitFieldsNotUsingInObject, pickFieldsUsingInObject };

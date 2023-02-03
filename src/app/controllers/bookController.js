@@ -15,15 +15,15 @@ const bookController = {
       const codeExist = await Book.findOne({ bookCode: bookCode });
 
       if (nameExist) {
-        //   if (imageUrl) {
-        //     deleteImage(imageUrl);
-        //   }
+        if (imageUrl) {
+          deleteImage(imageUrl);
+        }
         return res.status(404).json(errResponse.NAME_EXIST);
       }
       if (codeExist) {
-        //   if (imageUrl) {
-        //     deleteImage(imageUrl);
-        //   }
+        if (imageUrl) {
+          deleteImage(imageUrl);
+        }
         return res.status(404).json(errResponse.CODE_EXIST);
       }
       const newBook = new Book(req.body);
@@ -36,9 +36,9 @@ const bookController = {
       }
       res.status(200).json(savedBook.id);
     } catch (error) {
-      // if (req.body.imageUrl) {
-      //   deleteImage(req.body.imageUrl);
-      // }
+      if (req.body.imageUrl) {
+        deleteImage(req.body.imageUrl);
+      }
       res.status(500).json(errResponse.SERVER_ERROR);
     }
   },
@@ -151,9 +151,9 @@ const bookController = {
       await Author.updateMany({ bookIds: id }, { $pull: { bookIds: id } });
       const book = await Book.findById(id).lean();
       const imageUrl = book.imageUrl;
-      // if (imageUrl) {
-      //   deleteImage(imageUrl);
-      // }
+      if (imageUrl) {
+        deleteImage(imageUrl);
+      }
       await Book.findByIdAndDelete(id);
       res.status(200).json("deleted");
     } catch (error) {

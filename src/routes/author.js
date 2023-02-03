@@ -4,6 +4,7 @@ const authorController = require("../app/controllers/authorController");
 const middleWareController = require("../app/controllers/middlewareController");
 const roles = require("../app/constants/roles");
 
+router.get("/allAuthors", authorController.getAuthorToSelect);
 router.get("/:id", authorController.getDetailAuthor);
 router.put("/:id", authorController.updateAuthor);
 router.delete(
@@ -13,8 +14,8 @@ router.delete(
 );
 router.get(
   "/",
-  middleWareController.verifyToken,
-  middleWareController.verifyRoles(roles.SHOW_LIST_AUTHOR),
+  // middleWareController.verifyToken,
+  // middleWareController.verifyRoles(roles.SHOW_LIST_AUTHOR),
   authorController.getAllAuthor
 );
 router.post("/", authorController.addAuthor);
