@@ -47,25 +47,28 @@ const bookController = {
       const { id } = req.params;
       const { imageUrl, name } = req.body;
       if (!id) {
-        //   if (imageUrl) {
-        //     deleteImage(imageUrl);
-        //   }
+        if (imageUrl) {
+          deleteImage(imageUrl);
+        }
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
       const nameExist = await Book.findOne({ name: name });
       if (nameExist && nameExist.id !== id) {
-        //   if (imageUrl) {
-        //     deleteImage(imageUrl);
-        //   }
+        if (imageUrl) {
+          deleteImage(imageUrl);
+        }
         return res.status(404).json(errResponse.NAME_EXIST);
       }
       const book = await Book.findById(id);
+      if ((!imageUrl && book.imageUrl) || book.imageUrl !== imageUrl) {
+        deleteImage(book.imageUrl);
+      }
       await book.updateOne({ $set: req.body });
       res.status(200).json(book.id);
     } catch (error) {
-      // if (req.body.imageUrl) {
-      //   deleteImage(req.body.imageUrl);
-      // }
+      if (req.body.imageUrl) {
+        deleteImage(req.body.imageUrl);
+      }
       res.status(500).json(errResponse.SERVER_ERROR);
     }
   },
@@ -135,8 +138,8 @@ const bookController = {
       if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      const book = await Book.findById(id);
-      const { __v, createdAt, ...others } = book._doc;
+      const book = await Book.findById(id).lean();
+      const { __v, createdAt, ...others } = book;
       res.status(200).json(others);
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
