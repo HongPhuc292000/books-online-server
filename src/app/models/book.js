@@ -8,7 +8,6 @@ const bookSchema = new Schema({
   authorId: { type: mongoose.Schema.Types.ObjectId, ref: "authors" },
   view: { type: Number, default: 0 },
   isFull: { type: Boolean, default: false },
-  publisherId: { type: mongoose.Schema.Types.ObjectId, ref: "publishers" },
   amount: { type: Number, default: 0 },
   categoryIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "categories" }],
   content: { type: Object },
@@ -16,6 +15,7 @@ const bookSchema = new Schema({
   reducedPrice: Number,
   bookCode: { type: String, require: true },
   status: { type: String, default: statuses.DISABLE },
+  weight: { type: Number },
   createdAt: { type: Date, default: new Date() },
 });
 
