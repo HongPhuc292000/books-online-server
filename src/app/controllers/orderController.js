@@ -66,29 +66,29 @@ const orderController = {
       res.status(500).json(errResponse.SERVER_ERROR);
     }
   },
-  getAllDiscounts: async (req, res) => {
+  getAllOrders: async (req, res) => {
     try {
-      const { searchKey, minDate, maxDate, page, size } = req.query;
+      const { searchKey, page, size } = req.query;
       const pageParam = page ? parseInt(page) : 0;
       const sizeParam = size ? parseInt(size) : 10;
       const searchText = searchKey ? searchKey : "";
       const fiveYearsAgo = moment().get("y") + 5;
-      const minDateParam = minDate
-        ? minDate
-        : moment("1970-01-01T00:00:00+07:00").valueOf();
-      const maxDateParam = maxDate
-        ? maxDate
-        : moment(`${fiveYearsAgo}-01-01T00:00:00+07:00`).valueOf();
-      const discountsCount = await Discount.estimatedDocumentCount();
-      const discounts = await Discount.find({
+      // const minDateParam = minDate
+      //   ? minDate
+      //   : moment("1970-01-01T00:00:00+07:00").valueOf();
+      // const maxDateParam = maxDate
+      //   ? maxDate
+      //   : moment(`${fiveYearsAgo}-01-01T00:00:00+07:00`).valueOf();
+      const ordersCount = await Order.estimatedDocumentCount();
+      const orders = await Order.find({
         $or: [
           {
             code: { $regex: searchText, $options: "i" },
-            exp: { $gte: minDateParam, $lte: maxDateParam },
+            // exp: { $gte: minDateParam, $lte: maxDateParam },
           },
           {
             type: { $regex: searchText, $options: "i" },
-            exp: { $gte: minDateParam, $lte: maxDateParam },
+            // exp: { $gte: minDateParam, $lte: maxDateParam },
           },
         ],
       })
@@ -96,10 +96,10 @@ const orderController = {
         .skip(pageParam * sizeParam)
         .limit(sizeParam)
         .lean();
-      const responseDiscount = omitFieldsNotUsingInObject(discounts, ["__v"]);
+      const responseOrder = omitFieldsNotUsingInObject(orders, ["__v"]);
       res.status(200).json({
-        data: responseDiscount,
-        total: discountsCount,
+        data: responseOrder,
+        total: ordersCount,
         page: pageParam,
         size: sizeParam,
       });

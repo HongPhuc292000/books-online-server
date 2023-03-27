@@ -2,17 +2,20 @@ const mongoose = require("mongoose");
 const statuses = require("../constants/status");
 const Schema = mongoose.Schema;
 
+const subOrderSchema = new Schema(
+  {
+    productId: { type: String },
+    amount: { type: Number },
+    reducedPrices: { type: Number },
+    defaultPrices: { type: Number },
+  },
+  { _id: false }
+);
+
 const orderSchema = new Schema(
   {
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
-    products: [
-      {
-        productId: { type: mongoose.Schema.Types.ObjectId, ref: "books" },
-        amount: Number,
-        reducedPrices: Number,
-        defaultPrices: Number,
-      },
-    ],
+    products: [subOrderSchema],
     status: { type: String },
     orderPrices: { type: Number },
     shipPrices: { type: Number },

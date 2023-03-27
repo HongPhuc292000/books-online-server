@@ -11,6 +11,6 @@ const middleWareController = require("../app/controllers/middlewareController");
 //   orderController.deleteBook
 // );
 router.post("/", orderController.addOrder);
-// router.get("/", orderController.getAllBooks);
+router.get("/", orderController.getAllOrders);
 
 module.exports = router;
