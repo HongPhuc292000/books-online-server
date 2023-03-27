@@ -7,6 +7,7 @@ const profileRouter = require("./profile");
 const categoryRouter = require("./category");
 const adminAuthRouter = require("./adminAuth");
 const discountRouter = require("./discount");
+const orderRouter = require("./order");
 
 function route(app) {
   app.use("/api/v1/auth", authRouter);
@@ -18,6 +19,7 @@ function route(app) {
   app.use("/api/v1/profile", profileRouter);
   app.use("/api/v1/category", categoryRouter);
   app.use("/api/v1/discount", discountRouter);
+  app.use("/api/v1/order", orderRouter);
 }
 
 module.exports = route;

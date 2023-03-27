@@ -9,14 +9,16 @@ const orderSchema = new Schema(
       {
         productId: { type: mongoose.Schema.Types.ObjectId, ref: "books" },
         amount: Number,
+        reducedPrices: Number,
+        defaultPrices: Number,
       },
     ],
-
-    reducedPrice: Number,
     status: { type: String },
     orderPrices: { type: Number },
+    shipPrices: { type: Number },
+    shipSalePrices: { type: Number },
+    discountPrices: { type: Number },
     totalPrices: { type: Number },
-    shipPrice: { type: Number },
   },
   {
     timestamps: true,
