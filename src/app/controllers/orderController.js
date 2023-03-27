@@ -26,41 +26,44 @@ const orderController = {
       res.status(500).json(errResponse.SERVER_ERROR);
     }
   },
-  editDiscount: async (req, res) => {
+  editOrder: async (req, res) => {
     try {
       const { id } = req.params;
       if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      const discountCodeExist = await Discount.findOne({ code: req.body.code });
-      if (discountCodeExist && discountCodeExist.id !== id) {
-        return res.status(404).json(errResponse.CODE_EXIST);
-      }
-      if (req.body.exp) {
-        const formDataNoExp = omit(req.body, ["exp"]);
-        const expTimeStamp = moment(req.body.exp).valueOf();
-        const discount = await Discount.findById(req.params.id);
-        await discount.updateOne({
-          $set: { ...formDataNoExp, exp: expTimeStamp },
-        });
-        res.status(200).json(discount.id);
-      } else {
-        const discount = await Discount.findById(req.params.id);
-        await discount.updateOne({ $set: req.body });
-        res.status(200).json(discount.id);
-      }
+      const order = await Order.findById(id);
+      await order.updateOne({ $set: req.body });
+      // const discountCodeExist = await Discount.findOne({ code: req.body.code });
+      // if (discountCodeExist && discountCodeExist.id !== id) {
+      //   return res.status(404).json(errResponse.CODE_EXIST);
+      // }
+      // if (req.body.exp) {
+      //   const formDataNoExp = omit(req.body, ["exp"]);
+      //   const expTimeStamp = moment(req.body.exp).valueOf();
+      //   const discount = await Discount.findById(req.params.id);
+      //   await discount.updateOne({
+      //     $set: { ...formDataNoExp, exp: expTimeStamp },
+      //   });
+      //   res.status(200).json(discount.id);
+      // } else {
+      //   const discount = await Discount.findById(req.params.id);
+      //   await discount.updateOne({ $set: req.body });
+      //   res.status(200).json(discount.id);
+      // }
+      res.status(200).json(order.id);
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
     }
   },
-  getDetailDiscount: async (req, res) => {
+  getDetailOrder: async (req, res) => {
     try {
       const { id } = req.params;
       if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      const discount = await Discount.findById(req.params.id).lean();
-      const { __v, ...other } = discount;
+      const order = await Order.findById(id).lean();
+      const { __v, ...other } = order;
       res.status(200).json(other);
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
@@ -72,7 +75,7 @@ const orderController = {
       const pageParam = page ? parseInt(page) : 0;
       const sizeParam = size ? parseInt(size) : 10;
       const searchText = searchKey ? searchKey : "";
-      const fiveYearsAgo = moment().get("y") + 5;
+      // const fiveYearsAgo = moment().get("y") + 5;
       // const minDateParam = minDate
       //   ? minDate
       //   : moment("1970-01-01T00:00:00+07:00").valueOf();
@@ -92,7 +95,7 @@ const orderController = {
           },
         ],
       })
-        .sort({ code: 1 })
+        // .sort()
         .skip(pageParam * sizeParam)
         .limit(sizeParam)
         .lean();
@@ -103,21 +106,6 @@ const orderController = {
         page: pageParam,
         size: sizeParam,
       });
-    } catch (error) {
-      res.status(500).json(errResponse.SERVER_ERROR);
-    }
-  },
-  deleteDiscount: async (req, res) => {
-    try {
-      const { id } = req.params;
-      if (!id) {
-        return res.status(404).json(errResponse.BAD_REQUEST);
-      }
-      const discount = await Discount.findById(req.params.id).lean();
-      if (discount.used) {
-        return res.status(404).json(errResponse.USED_CODE);
-      }
-      res.status(200).json("deleted");
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
     }

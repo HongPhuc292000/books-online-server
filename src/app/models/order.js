@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 
 const subOrderSchema = new Schema(
   {
-    productId: { type: String },
+    productId: { type: mongoose.Schema.Types.ObjectId, ref: "books" },
     amount: { type: Number },
     reducedPrices: { type: Number },
     defaultPrices: { type: Number },
