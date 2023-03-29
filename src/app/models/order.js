@@ -15,12 +15,13 @@ const subOrderSchema = new Schema(
 const orderSchema = new Schema(
   {
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
+    customerName: { type: String },
     products: [subOrderSchema],
     status: { type: String },
     orderPrices: { type: Number },
     shipPrices: { type: Number },
-    shipSalePrices: { type: Number },
-    discountPrices: { type: Number },
+    shipDiscountPrices: { type: Number },
+    orderDiscountPrices: { type: Number },
     totalPrices: { type: Number },
   },
   {

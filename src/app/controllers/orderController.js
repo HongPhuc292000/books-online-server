@@ -7,10 +7,16 @@ const { errResponse } = require("../constants/responseMessage");
 const orderController = {
   addOrder: async (req, res) => {
     try {
-      const { customerId, products, orderPrices, shipPrices, totalPrices } =
-        req.body;
+      const {
+        customerId,
+        customerName,
+        products,
+        orderPrices,
+        shipPrices,
+        totalPrices,
+      } = req.body;
       if (
-        !customerId ||
+        (!customerId && !customerName) ||
         !products ||
         !orderPrices ||
         !shipPrices ||
