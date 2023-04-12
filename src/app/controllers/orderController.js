@@ -11,22 +11,16 @@ const orderController = {
         customerId,
         customerName,
         products,
+        phoneNumber,
         orderPrices,
         shipPrices,
         totalPrices,
       } = req.body;
-      if (
-        (!customerId && !customerName) ||
-        !products ||
-        !orderPrices ||
-        !shipPrices ||
-        !totalPrices
-      ) {
+      if ((!customerId && !customerName) || !products || !phoneNumber) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
       const newOrder = new Order(req.body);
       const savedOrder = await newOrder.save();
-
       res.status(200).json(savedOrder.id);
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
@@ -90,16 +84,16 @@ const orderController = {
       //   : moment(`${fiveYearsAgo}-01-01T00:00:00+07:00`).valueOf();
       const ordersCount = await Order.estimatedDocumentCount();
       const orders = await Order.find({
-        $or: [
-          {
-            code: { $regex: searchText, $options: "i" },
-            // exp: { $gte: minDateParam, $lte: maxDateParam },
-          },
-          {
-            type: { $regex: searchText, $options: "i" },
-            // exp: { $gte: minDateParam, $lte: maxDateParam },
-          },
-        ],
+        // $or: [
+        //   {
+        //     customerName: { $regex: searchText, $options: "i" },
+        //     // exp: { $gte: minDateParam, $lte: maxDateParam },
+        //   },
+        //   // {
+        //   //   type: { $regex: searchText, $options: "i" },
+        //   //   // exp: { $gte: minDateParam, $lte: maxDateParam },
+        //   // },
+        // ],
       })
         // .sort()
         .skip(pageParam * sizeParam)
@@ -112,6 +106,17 @@ const orderController = {
         page: pageParam,
         size: sizeParam,
       });
+    } catch (error) {
+      res.status(500).json(errResponse.SERVER_ERROR);
+    }
+  },
+  deleteOrder: async (req, res) => {
+    try {
+      if (!req.params.id) {
+        return res.status(404).json(errResponse.BAD_REQUEST);
+      }
+      await Order.findByIdAndDelete(req.params.id);
+      res.status(200).json("deleted");
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
     }

@@ -3,6 +3,7 @@ const Book = require("../models/book");
 const { errResponse } = require("../constants/responseMessage");
 const { deleteImage } = require("../firebase/firebaseServices");
 const { omitFieldsNotUsingInObject } = require("../../utils/arrayMethods");
+const bookStatus = require("../constants/status");
 
 const bookController = {
   addBook: async (req, res) => {
@@ -72,6 +73,30 @@ const bookController = {
       res.status(500).json(errResponse.SERVER_ERROR);
     }
   },
+  getAllBooksForOrder: async (req, res) => {
+    console.log("aha");
+    try {
+      const books = await Book.find({}).sort({ name: 1 }).lean();
+
+      const responseBooks = omitFieldsNotUsingInObject(books, [
+        "imageUrl",
+        "authorId",
+        "view",
+        "amount",
+        "categoryIds",
+        "content",
+        "bookCode",
+        "isFull",
+        "createdAt",
+        "status",
+        "weight",
+        "__v",
+      ]);
+      res.status(200).json(responseBooks);
+    } catch (error) {
+      res.status(500).json(errResponse.SERVER_ERROR);
+    }
+  },
   getAllBooks: async (req, res) => {
     try {
       const { page, size, searchKey, statuses, categoryIds } = req.query;
@@ -115,7 +140,6 @@ const bookController = {
 
       const responseBooks = omitFieldsNotUsingInObject(books, [
         "imageUrl",
-        "publisherId",
         "content",
         "bookCode",
         "isFull",

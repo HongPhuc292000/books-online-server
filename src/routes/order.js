@@ -5,6 +5,7 @@ const middleWareController = require("../app/controllers/middlewareController");
 
 router.get("/:id", orderController.getDetailOrder);
 router.put("/:id", orderController.editOrder);
+router.delete("/:id", orderController.deleteOrder);
 router.post("/", orderController.addOrder);
 router.get("/", orderController.getAllOrders);
 

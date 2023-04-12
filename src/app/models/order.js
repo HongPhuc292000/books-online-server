@@ -16,6 +16,7 @@ const orderSchema = new Schema(
   {
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
     customerName: { type: String },
+    phoneNumber: { type: String },
     products: [subOrderSchema],
     status: { type: String },
     orderPrices: { type: Number },
