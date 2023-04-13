@@ -7,15 +7,7 @@ const { errResponse } = require("../constants/responseMessage");
 const orderController = {
   addOrder: async (req, res) => {
     try {
-      const {
-        customerId,
-        customerName,
-        products,
-        phoneNumber,
-        orderPrices,
-        shipPrices,
-        totalPrices,
-      } = req.body;
+      const { customerId, customerName, products, phoneNumber } = req.body;
       if ((!customerId && !customerName) || !products || !phoneNumber) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }

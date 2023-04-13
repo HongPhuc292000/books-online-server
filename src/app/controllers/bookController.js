@@ -74,18 +74,20 @@ const bookController = {
     }
   },
   getAllBooksForOrder: async (req, res) => {
-    console.log("aha");
     try {
-      const books = await Book.find({}).sort({ name: 1 }).lean();
+      const books = await Book.find({
+        status: bookStatus.ENABLE,
+        amount: { $gt: 0 },
+      })
+        .sort({ name: 1 })
+        .lean();
 
       const responseBooks = omitFieldsNotUsingInObject(books, [
         "imageUrl",
         "authorId",
         "view",
-        "amount",
         "categoryIds",
         "content",
-        "bookCode",
         "isFull",
         "createdAt",
         "status",

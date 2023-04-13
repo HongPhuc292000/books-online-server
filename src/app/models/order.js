@@ -6,6 +6,7 @@ const subOrderSchema = new Schema(
   {
     productId: { type: mongoose.Schema.Types.ObjectId, ref: "books" },
     amount: { type: Number },
+    bookCode: { type: String },
     reducedPrices: { type: Number },
     defaultPrices: { type: Number },
   },
