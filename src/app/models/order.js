@@ -25,6 +25,7 @@ const orderSchema = new Schema(
     shipDiscountPrices: { type: Number },
     orderDiscountPrices: { type: Number },
     totalPrices: { type: Number },
+    address: { type: String },
   },
   {
     timestamps: true,
