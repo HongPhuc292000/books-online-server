@@ -6,16 +6,8 @@ const { deleteImage } = require("../firebase/firebaseServices");
 const userController = {
   addUser: async (req, res) => {
     try {
-      const {
-        username,
-        password,
-        fullname,
-        phoneNumber,
-        email,
-        imageUrl,
-        birthday,
-      } = req.body;
-      if (!username || !password || !phoneNumber || !birthday) {
+      const { username, fullname, phoneNumber, email, imageUrl } = req.body;
+      if (!phoneNumber || !fullname) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
       const usernameExist = await User.findOne({ username: username });
@@ -39,7 +31,7 @@ const userController = {
         }
         return res.status(404).json(errResponse.EMAIL_EXIST);
       }
-      const newUser = new User({ ...req.body, fullname: fullname || username });
+      const newUser = new User(req.body);
       const savedUser = await newUser.save();
       res.status(200).json(savedUser.id);
     } catch (error) {
@@ -139,9 +131,15 @@ const userController = {
       if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      const user = await User.findById(id);
-      const { __v, createdAt, updatedAt, ...others } = user._doc;
-      res.status(200).json(others);
+      if (id.length === 10) {
+        const user = await User.findOne({ phoneNumber: id });
+        const { _id, fullname } = user._doc;
+        res.status(200).json({ _id, fullname });
+      } else {
+        const user = await User.findById(id);
+        const { __v, createdAt, updatedAt, ...others } = user._doc;
+        res.status(200).json(others);
+      }
     } catch {
       res.status(500).json(errResponse.SERVER_ERROR);
     }

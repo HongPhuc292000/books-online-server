@@ -4,7 +4,7 @@ const RefreshToken = require("../models/refreshToken");
 const { errResponse } = require("../constants/responseMessage");
 const roles = require("../constants/roles");
 
-const amindAuthController = {
+const adminAuthController = {
   generateAccessToken: (member) => {
     return jwt.sign(
       { id: member.id, roles: member.roles },
@@ -38,9 +38,9 @@ const amindAuthController = {
             res.status(400).json("password_not_correct");
           } else {
             const accessToken =
-              amindAuthController.generateAccessToken(userExist);
+              adminAuthController.generateAccessToken(userExist);
             const refreshToken =
-              amindAuthController.generateRefreshToken(userExist);
+              adminAuthController.generateRefreshToken(userExist);
             const newrefreshToken = new RefreshToken({ token: refreshToken });
             await newrefreshToken.save();
             res.status(200).json({
@@ -82,9 +82,9 @@ const amindAuthController = {
           } else {
             await RefreshToken.findByIdAndDelete(currentRefreshToken.id);
             const newAccessToken =
-              amindAuthController.generateAccessToken(member);
+              adminAuthController.generateAccessToken(member);
             const newRefreshToken =
-              amindAuthController.generateRefreshToken(member);
+              adminAuthController.generateRefreshToken(member);
             const toSaveRfToken = new RefreshToken({
               token: newRefreshToken,
             });
@@ -111,4 +111,4 @@ const amindAuthController = {
   },
 };
 
-module.exports = amindAuthController;
+module.exports = adminAuthController;

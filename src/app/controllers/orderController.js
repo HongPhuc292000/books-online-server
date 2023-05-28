@@ -1,18 +1,47 @@
 const moment = require("moment");
 const { omit } = require("lodash");
 const Order = require("../models/order");
+const User = require("../models/user");
+const Book = require("../models/book");
+const orderStatuses = require("../constants/orderStatus");
 const { omitFieldsNotUsingInObject } = require("../../utils/arrayMethods");
 const { errResponse } = require("../constants/responseMessage");
 
 const orderController = {
   addOrder: async (req, res) => {
     try {
-      const { customerId, customerName, products, phoneNumber } = req.body;
-      if ((!customerId && !customerName) || !products || !phoneNumber) {
+      const { customerId, customerName, products, customerPhoneNumber } =
+        req.body;
+      let orderData = req.body;
+      if ((!customerId && !customerName) || !products || !customerPhoneNumber) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      const newOrder = new Order(req.body);
+
+      const phoneExist = await User.findOne({
+        phoneNumber: customerPhoneNumber,
+      });
+
+      if (!phoneExist) {
+        const newUser = new User({
+          phoneNumber: customerPhoneNumber,
+          fullname: customerName,
+        });
+        const savedUser = await newUser.save();
+        orderData = { ...orderData, customerId: savedUser.id };
+      } else {
+        orderData = { ...orderData, customerId: phoneExist.id };
+      }
+      const newOrder = new Order(orderData);
       const savedOrder = await newOrder.save();
+      if (savedOrder) {
+        const productBought = savedOrder.products;
+        productBought.forEach(async (product) => {
+          const productData = await Book.findById(product.productId);
+          await productData.updateOne({
+            $set: { amount: productData.amount - product.amount },
+          });
+        });
+      }
       res.status(200).json(savedOrder.id);
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
@@ -21,28 +50,34 @@ const orderController = {
   editOrder: async (req, res) => {
     try {
       const { id } = req.params;
-      if (!id) {
+      const { status, paymentType, totalPrices, products } = req.body;
+      if (!id || !status) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
       const order = await Order.findById(id);
+      if (status === orderStatuses.ORDERED && (!paymentType || !totalPrices)) {
+        return res.status(404).json(errResponse.BAD_REQUEST);
+      }
+      if (products && order.status !== status) {
+        if (status === orderStatuses.DONE) {
+          products.forEach(async (product) => {
+            const productData = await Book.findById(product.productId);
+            await productData.updateOne({
+              $set: { amount: productData.amount - product.amount },
+            });
+          });
+        }
+        if (orderStatuses.REPAY) {
+          products.forEach(async (product) => {
+            const productData = await Book.findById(product.productId);
+            await productData.updateOne({
+              $set: { amount: productData.amount + product.amount },
+            });
+          });
+        }
+      }
+
       await order.updateOne({ $set: req.body });
-      // const discountCodeExist = await Discount.findOne({ code: req.body.code });
-      // if (discountCodeExist && discountCodeExist.id !== id) {
-      //   return res.status(404).json(errResponse.CODE_EXIST);
-      // }
-      // if (req.body.exp) {
-      //   const formDataNoExp = omit(req.body, ["exp"]);
-      //   const expTimeStamp = moment(req.body.exp).valueOf();
-      //   const discount = await Discount.findById(req.params.id);
-      //   await discount.updateOne({
-      //     $set: { ...formDataNoExp, exp: expTimeStamp },
-      //   });
-      //   res.status(200).json(discount.id);
-      // } else {
-      //   const discount = await Discount.findById(req.params.id);
-      //   await discount.updateOne({ $set: req.body });
-      //   res.status(200).json(discount.id);
-      // }
       res.status(200).json(order.id);
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
@@ -67,27 +102,11 @@ const orderController = {
       const pageParam = page ? parseInt(page) : 0;
       const sizeParam = size ? parseInt(size) : 10;
       const searchText = searchKey ? searchKey : "";
-      // const fiveYearsAgo = moment().get("y") + 5;
-      // const minDateParam = minDate
-      //   ? minDate
-      //   : moment("1970-01-01T00:00:00+07:00").valueOf();
-      // const maxDateParam = maxDate
-      //   ? maxDate
-      //   : moment(`${fiveYearsAgo}-01-01T00:00:00+07:00`).valueOf();
       const ordersCount = await Order.estimatedDocumentCount();
       const orders = await Order.find({
-        // $or: [
-        //   {
-        //     customerName: { $regex: searchText, $options: "i" },
-        //     // exp: { $gte: minDateParam, $lte: maxDateParam },
-        //   },
-        //   // {
-        //   //   type: { $regex: searchText, $options: "i" },
-        //   //   // exp: { $gte: minDateParam, $lte: maxDateParam },
-        //   // },
-        // ],
+        customerName: { $regex: searchText, $options: "i" },
       })
-        // .sort()
+        .sort({ createAt: 0 })
         .skip(pageParam * sizeParam)
         .limit(sizeParam)
         .lean();

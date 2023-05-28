@@ -6,7 +6,7 @@ const middleWareController = require("../app/controllers/middlewareController");
 router.get("/allCategories", categoryController.getCategoryToSelect);
 router.delete(
   "/:id",
-  middleWareController.verifyToken,
+  // middleWareController.verifyToken,
   categoryController.deleteCategory
 );
 router.post("/", categoryController.addCategory);

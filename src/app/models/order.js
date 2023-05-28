@@ -1,14 +1,21 @@
 const mongoose = require("mongoose");
-const statuses = require("../constants/status");
+const orderStatuses = require("../constants/orderStatus");
 const Schema = mongoose.Schema;
+
+const paymentTypeConst = {
+  ONLINE: "ONLINE",
+  CASH: "CASH",
+};
 
 const subOrderSchema = new Schema(
   {
     productId: { type: mongoose.Schema.Types.ObjectId, ref: "books" },
     amount: { type: Number },
     bookCode: { type: String },
-    reducedPrices: { type: Number },
-    defaultPrices: { type: Number },
+    reducedPrice: { type: Number },
+    defaultPrice: { type: Number },
+    imageUrl: { type: String },
+    name: { type: String },
   },
   { _id: false }
 );
@@ -17,15 +24,17 @@ const orderSchema = new Schema(
   {
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
     customerName: { type: String },
-    phoneNumber: { type: String },
+    customerPhoneNumber: { type: String },
+    customerAdress: { type: String },
+    paymentType: { type: String, default: paymentTypeConst.CASH },
     products: [subOrderSchema],
-    status: { type: String },
+    status: { type: String, default: orderStatuses.INCART },
     orderPrices: { type: Number },
     shipPrices: { type: Number },
     shipDiscountPrices: { type: Number },
+    orderDiscountId: { type: mongoose.Schema.Types.ObjectId, ref: "discount" },
     orderDiscountPrices: { type: Number },
     totalPrices: { type: Number },
-    address: { type: String },
   },
   {
     timestamps: true,

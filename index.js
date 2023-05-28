@@ -19,6 +19,9 @@ app.use(
   })
 );
 app.use(express.json());
+var corsOptions = {
+  origin: ["http://localhost:3000", "books-online-dashboard.vercel.app"],
+};
 app.use(cors());
 app.use(cookieParser());
 app.use(morgan("common"));

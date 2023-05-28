@@ -12,6 +12,7 @@ const errResponse = {
   TOKEN_NOT_VALID: "token_not_valid",
   NOT_ALLOWED: "not_allowed",
   NOT_SIGN: "not_sign",
+  DELETE_FAIL: "delete_fail",
   REFRESH_TOKEN_NOT_VALID: "refresh_token_not_valid",
   NOT_AUTHORIZED: "not_authorize",
 };

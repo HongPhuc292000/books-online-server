@@ -16,7 +16,7 @@ const bookSchema = new Schema(
     reducedPrice: Number,
     bookCode: { type: String, require: true },
     status: { type: String, default: statuses.DISABLE },
-    weight: { type: Number },
+    // weight: { type: Number },
   },
   {
     timestamps: true,

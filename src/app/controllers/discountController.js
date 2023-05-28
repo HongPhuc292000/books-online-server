@@ -7,9 +7,9 @@ const { errResponse } = require("../constants/responseMessage");
 const discountController = {
   addDiscount: async (req, res) => {
     try {
-      const { type, code, value, exp } = req.body;
+      const { type, code, value, exp, description } = req.body;
       const discountCodeExist = await Discount.findOne({ code: code });
-      if (!type || !code || !value || !exp) {
+      if (!type || !code || !description || !value || !exp) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
       if (discountCodeExist) {
@@ -70,7 +70,8 @@ const discountController = {
   },
   getAllDiscounts: async (req, res) => {
     try {
-      const { searchKey, minDate, maxDate, page, size } = req.query;
+      const { searchKey, minDate, maxDate, page, size, status, all } =
+        req.query;
       const pageParam = page ? parseInt(page) : 0;
       const sizeParam = size ? parseInt(size) : 10;
       const searchText = searchKey ? searchKey : "";
@@ -87,16 +88,18 @@ const discountController = {
           {
             code: { $regex: searchText, $options: "i" },
             exp: { $gte: minDateParam, $lte: maxDateParam },
+            enable: status ? status : true,
           },
           {
             type: { $regex: searchText, $options: "i" },
             exp: { $gte: minDateParam, $lte: maxDateParam },
+            enable: status ? status : false,
           },
         ],
       })
         .sort({ code: 1 })
-        .skip(pageParam * sizeParam)
-        .limit(sizeParam)
+        .skip(all ? 0 : pageParam * sizeParam)
+        .limit(all ? 0 : sizeParam)
         .lean();
       const responseDiscount = omitFieldsNotUsingInObject(discounts, ["__v"]);
       res.status(200).json({

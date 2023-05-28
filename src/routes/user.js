@@ -9,5 +9,4 @@ router.get("/:id", userController.getDetailUser);
 router.put("/:id", userController.editUser);
 router.get("/", userController.getAllUsers);
 router.post("/", userController.addUser);
-
 module.exports = router;

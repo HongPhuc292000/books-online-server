@@ -5,6 +5,7 @@ const Schema = mongoose.Schema;
 
 const discountSchema = new Schema({
   code: { type: String, require: true },
+  description: { type: String, require: true },
   type: { type: String, default: discountTypes.PERCENT },
   discountFor: { type: String, default: discountFor.ORDER },
   value: { type: Number, require: true },

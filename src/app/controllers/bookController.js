@@ -164,9 +164,24 @@ const bookController = {
       if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      const book = await Book.findById(id).lean();
-      const { __v, createdAt, ...others } = book;
-      res.status(200).json(others);
+      if (id.length === 12) {
+        const book = await Book.findOne({ bookCode: id });
+        const { _id, bookCode, imageUrl, name, defaultPrice, reducedPrice } =
+          book;
+        res.status(200).json({
+          productId: _id,
+          imageUrl,
+          bookCode,
+          name,
+          amount: 1,
+          defaultPrice,
+          reducedPrice,
+        });
+      } else {
+        const book = await Book.findById(id).lean();
+        const { __v, createdAt, ...others } = book;
+        res.status(200).json(others);
+      }
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
     }

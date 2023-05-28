@@ -70,14 +70,14 @@ const categoryController = {
   },
   deleteCategory: async (req, res) => {
     try {
-      // await Book.updateMany(
-      //   { categories: req.params.id },
-      //   { $pull: { categories: req.params.id } }
-      // );
       const { id } = req.params;
       if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
+      await Book.updateMany(
+        { categoryIds: req.params.id },
+        { $pull: { categoryIds: req.params.id } }
+      );
       await Category.findByIdAndDelete(req.params.id);
       res.status(200).json("deleted");
     } catch (error) {
