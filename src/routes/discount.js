@@ -5,9 +5,24 @@ const middleWareController = require("../app/controllers/middlewareController");
 const roles = require("../app/constants/roles");
 
 router.get("/:id", discountController.getDetailDiscount);
-router.put("/:id", discountController.editDiscount);
-router.delete("/:id", discountController.deleteDiscount);
+router.put(
+  "/:id",
+  middleWareController.verifyToken,
+  middleWareController.verifyRoles(roles.EDIT_DISCOUNT),
+  discountController.editDiscount
+);
+router.delete(
+  "/:id",
+  middleWareController.verifyToken,
+  middleWareController.verifyRoles(roles.DELETE_DISCOUNT),
+  discountController.deleteDiscount
+);
 router.get("/", discountController.getAllDiscounts);
-router.post("/", discountController.addDiscount);
+router.post(
+  "/",
+  middleWareController.verifyToken,
+  middleWareController.verifyRoles(roles.ADD_DISCOUNT),
+  discountController.addDiscount
+);
 
 module.exports = router;

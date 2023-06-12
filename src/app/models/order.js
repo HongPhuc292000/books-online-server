@@ -22,10 +22,11 @@ const subOrderSchema = new Schema(
 
 const orderSchema = new Schema(
   {
+    orderCode: { type: String },
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
     customerName: { type: String },
     customerPhoneNumber: { type: String },
-    customerAdress: { type: String },
+    customerAddress: { type: String },
     paymentType: { type: String, default: paymentTypeConst.CASH },
     products: [subOrderSchema],
     status: { type: String, default: orderStatuses.INCART },
@@ -35,6 +36,7 @@ const orderSchema = new Schema(
     orderDiscountId: { type: mongoose.Schema.Types.ObjectId, ref: "discount" },
     orderDiscountPrices: { type: Number },
     totalPrices: { type: Number },
+    checkout: { type: Boolean, default: false },
   },
   {
     timestamps: true,

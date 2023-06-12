@@ -12,7 +12,9 @@ const orderController = {
     try {
       const { customerId, customerName, products, customerPhoneNumber } =
         req.body;
-      let orderData = req.body;
+      const date = new Date();
+      const orderCode = moment(date).format("HHmmss");
+      let orderData = { ...req.body, orderCode: orderCode };
       if ((!customerId && !customerName) || !products || !customerPhoneNumber) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
@@ -38,7 +40,12 @@ const orderController = {
         productBought.forEach(async (product) => {
           const productData = await Book.findById(product.productId);
           await productData.updateOne({
-            $set: { amount: productData.amount - product.amount },
+            $set: {
+              amount: productData.amount - product.amount,
+              saled: productData?.saled
+                ? productData.saled + product.amount
+                : product.amount,
+            },
           });
         });
       }
@@ -63,7 +70,12 @@ const orderController = {
           products.forEach(async (product) => {
             const productData = await Book.findById(product.productId);
             await productData.updateOne({
-              $set: { amount: productData.amount - product.amount },
+              $set: {
+                amount: productData.amount - product.amount,
+                saled: productData?.saled
+                  ? productData.saled + product.amount
+                  : product.amount,
+              },
             });
           });
         }
@@ -71,7 +83,12 @@ const orderController = {
           products.forEach(async (product) => {
             const productData = await Book.findById(product.productId);
             await productData.updateOne({
-              $set: { amount: productData.amount + product.amount },
+              $set: {
+                amount: productData.amount + product.amount,
+                saled: productData?.saled
+                  ? productData.saled - product.amount
+                  : product.amount,
+              },
             });
           });
         }

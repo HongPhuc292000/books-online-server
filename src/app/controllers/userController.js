@@ -13,7 +13,7 @@ const userController = {
       const usernameExist = await User.findOne({ username: username });
       const phoneExist = await User.findOne({ phoneNumber: phoneNumber });
       const emailExist = await User.findOne({ email: email });
-      if (usernameExist) {
+      if (username && usernameExist) {
         if (imageUrl) {
           deleteImage(imageUrl);
         }
@@ -25,7 +25,7 @@ const userController = {
         }
         return res.status(404).json(errResponse.PHONE_EXIST);
       }
-      if (emailExist) {
+      if (email && emailExist) {
         if (imageUrl) {
           deleteImage(imageUrl);
         }

@@ -101,11 +101,22 @@ const bookController = {
   },
   getAllBooks: async (req, res) => {
     try {
-      const { page, size, searchKey, statuses, categoryIds } = req.query;
+      const {
+        page,
+        size,
+        searchKey,
+        statuses,
+        categoryIds,
+        isNew,
+        bestSaled,
+        inStock,
+        sort,
+      } = req.query;
       const pageParam = page ? parseInt(page) : 0;
       const sizeParam = size ? parseInt(size) : 10;
       const searchParam = searchKey ? searchKey : "";
       const booksCount = await Book.estimatedDocumentCount();
+
       let queries = {
         $and: [
           {
@@ -132,8 +143,29 @@ const bookController = {
           $and: [...queries.$and, { categoryIds: { $in: categoryIds } }],
         };
       }
+      if (isNew) {
+        const date = new Date();
+        date.setDate(date.getDate() - 14);
+        queries = {
+          ...queries,
+          $and: [...queries.$and, { createdAt: { $gte: date } }],
+        };
+      }
+      if (bestSaled) {
+        queries = {
+          ...queries,
+          $and: [...queries.$and, { saled: { $gte: 100 } }],
+        };
+      }
+      if (inStock === "true") {
+        queries = {
+          ...queries,
+          $and: [...queries.$and, { amount: { $gt: 0 } }],
+        };
+      }
+
       const books = await Book.find(queries)
-        .sort({ name: 1 })
+        .sort({ reducedPrice: sort ? sort : 1 })
         .skip(pageParam * sizeParam)
         .limit(sizeParam)
         .populate({ path: "authorId", select: "name" })
@@ -141,11 +173,9 @@ const bookController = {
         .lean();
 
       const responseBooks = omitFieldsNotUsingInObject(books, [
-        "imageUrl",
         "content",
         "bookCode",
         "isFull",
-        "createdAt",
         "__v",
       ]);
       res.status(200).json({
@@ -178,7 +208,10 @@ const bookController = {
           reducedPrice,
         });
       } else {
-        const book = await Book.findById(id).lean();
+        const book = await Book.findById(id)
+          .populate({ path: "authorId", select: "name" })
+          .populate({ path: "categoryIds", select: "name" })
+          .lean();
         const { __v, createdAt, ...others } = book;
         res.status(200).json(others);
       }

@@ -41,7 +41,7 @@ const authController = {
       { id: user.id, roles: user.roles },
       process.env.ACCESS_TOKEN_SECRET,
       {
-        expiresIn: "1h",
+        expiresIn: "5d",
       }
     );
   },
@@ -64,10 +64,7 @@ const authController = {
         if (!userExist) {
           res.status(400).json("username_not_correct");
         } else {
-          const validPassword = await bcrypt.compare(
-            password,
-            userExist.password
-          );
+          const validPassword = password === userExist.password;
           if (!validPassword) {
             res.status(400).json("password_not_correct");
           } else {

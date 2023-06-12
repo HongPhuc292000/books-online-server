@@ -46,7 +46,6 @@ const middlewareController = {
   },
   verifyProfile: (req, res, next) => {
     const { user } = req.body;
-    console.log(user.id);
     if (req.params.id === user.id) {
       next();
     } else {

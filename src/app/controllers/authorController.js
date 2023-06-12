@@ -113,7 +113,7 @@ const authorController = {
       if (imageUrl) {
         deleteImage(imageUrl);
       }
-      // await Book.updateMany({ authorId: req.params.id }, { authorId: null });
+      await Book.updateMany({ authorId: req.params.id }, { authorId: null });
       await Author.findByIdAndDelete(req.params.id);
       res.status(200).json("deleted");
     } catch (error) {

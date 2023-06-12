@@ -9,6 +9,10 @@ router.get(
   middleWareController.verifyProfile,
   memberController.getDetailMember
 );
-router.put("/:id", memberController.editMember);
+router.put(
+  "/:id",
+  middleWareController.verifyToken,
+  memberController.editMember
+);
 
 module.exports = router;
