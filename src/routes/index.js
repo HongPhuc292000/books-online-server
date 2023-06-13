@@ -9,6 +9,7 @@ const adminAuthRouter = require("./adminAuth");
 const discountRouter = require("./discount");
 const orderRouter = require("./order");
 const customerOrderRouter = require("./customerOrder");
+const profitRouter = require("./profit");
 
 function route(app) {
   app.use("/api/v1/auth", authRouter);
@@ -22,6 +23,7 @@ function route(app) {
   app.use("/api/v1/discount", discountRouter);
   app.use("/api/v1/order", orderRouter);
   app.use("/api/v1/customerOrder", customerOrderRouter);
+  app.use("/api/v1/profit", profitRouter);
 }
 
 module.exports = route;
