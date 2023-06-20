@@ -34,7 +34,12 @@ const categoryController = {
       const pageParam = page ? parseInt(page) : 0;
       const sizeParam = size ? parseInt(size) : 10;
       const searchKey = req.query.searchKey ? req.query.searchKey : "";
-      const categoriesCount = await Category.estimatedDocumentCount();
+      const categoriesCount = await Category.find({
+        $or: [
+          { name: { $regex: searchKey, $options: "i" } },
+          { type: { $regex: searchKey, $options: "i" } },
+        ],
+      }).count();
       const categories = await Category.find({
         $or: [
           { name: { $regex: searchKey, $options: "i" } },

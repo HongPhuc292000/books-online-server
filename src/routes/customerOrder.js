@@ -8,17 +8,12 @@ router.get(
   middleWareController.verifyToken,
   customerOrderController.getDetailInCartOrder
 );
-
-// router.post(
-//   "/",
-//   middleWareController.verifyToken,
-//   customerOrderController.addOrder
-// );
 router.post(
   "/removeProduct",
   middleWareController.verifyToken,
   customerOrderController.removeProductIncart
 );
+
 router.put(
   "/cod/:id",
   middleWareController.verifyToken,
@@ -41,6 +36,16 @@ router.post(
   "/",
   middleWareController.verifyToken,
   customerOrderController.addProductTocart
+);
+router.put(
+  "/cancelOrder/:id",
+  middleWareController.verifyToken,
+  customerOrderController.cancelOrder
+);
+router.get(
+  "/:id",
+  middleWareController.verifyToken,
+  customerOrderController.getDetailOrder
 );
 router.get(
   "/",

@@ -82,7 +82,20 @@ const discountController = {
       const maxDateParam = maxDate
         ? maxDate
         : moment(`${fiveYearsAgo}-01-01T00:00:00+07:00`).valueOf();
-      const discountsCount = await Discount.estimatedDocumentCount();
+      const discountsCount = await Discount.find({
+        $or: [
+          {
+            code: { $regex: searchText, $options: "i" },
+            exp: { $gte: minDateParam, $lte: maxDateParam },
+            enable: status ? status : true,
+          },
+          {
+            type: { $regex: searchText, $options: "i" },
+            exp: { $gte: minDateParam, $lte: maxDateParam },
+            enable: status ? status : false,
+          },
+        ],
+      }).count();
       const discounts = await Discount.find({
         $or: [
           {

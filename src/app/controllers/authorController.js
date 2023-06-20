@@ -46,7 +46,9 @@ const authorController = {
       const pageParam = page ? parseInt(page) : 0;
       const sizeParam = size ? parseInt(size) : 10;
       const searchParam = searchKey ? searchKey : "";
-      const authorCount = await Author.estimatedDocumentCount();
+      const authorCount = await Author.find({
+        name: { $regex: searchParam, $options: "i" },
+      }).count();
       const authors = await Author.find({
         name: { $regex: searchParam, $options: "i" },
       })

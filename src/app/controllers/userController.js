@@ -65,7 +65,7 @@ const userController = {
         }
         return res.status(404).json(errResponse.PHONE_EXIST);
       }
-      if (emailExist && emailExist.id !== id) {
+      if (email && emailExist && emailExist.id !== id) {
         if (imageUrl) {
           deleteImage(imageUrl);
         }
@@ -91,7 +91,16 @@ const userController = {
       const pageParam = page ? parseInt(page) : 0;
       const sizeParam = size ? parseInt(size) : 10;
       const searchParam = searchKey ? searchKey : "";
-      const userCount = await User.estimatedDocumentCount();
+      const userCount = await User.find({
+        $or: [
+          {
+            fullname: { $regex: searchParam, $options: "i" },
+          },
+          {
+            phoneNumber: { $regex: searchParam, $options: "i" },
+          },
+        ],
+      }).count();
       let members;
       members = await User.find({
         $or: [

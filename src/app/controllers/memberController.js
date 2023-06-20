@@ -100,7 +100,6 @@ const memberController = {
       const sizeParam = size ? parseInt(size) : 10;
       const searchParam = searchKey ? searchKey : "";
       const rolesParam = roles;
-      const memberCount = await Member.estimatedDocumentCount();
       let queries = {
         $and: [
           {
@@ -126,6 +125,7 @@ const memberController = {
           ],
         };
       }
+      const memberCount = await Member.find(queries).count();
       const members = await Member.find(queries)
         .sort({ fullname: 1 })
         .skip(pageParam * sizeParam)

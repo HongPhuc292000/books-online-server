@@ -2,6 +2,7 @@ const moment = require("moment");
 const { omit } = require("lodash");
 const Order = require("../models/order");
 const User = require("../models/user");
+const Discount = require("../models/discount");
 const Book = require("../models/book");
 const orderStatuses = require("../constants/orderStatus");
 const { omitFieldsNotUsingInObject } = require("../../utils/arrayMethods");
@@ -32,7 +33,6 @@ const customerOrderController = {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
       let productRequestData = other;
-      console.log(productRequestData);
       const currentCart = await Order.findOne({
         customerId: customerId,
         status: orderStatuses.INCART,
@@ -135,8 +135,14 @@ const customerOrderController = {
   checkoutOffline: async (req, res) => {
     try {
       const { id } = req.params;
-      const { customerId, status, paymentType, products, customerAddress } =
-        req.body.data;
+      const {
+        customerId,
+        status,
+        paymentType,
+        products,
+        customerAddress,
+        orderDiscountId,
+      } = req.body.data;
       if (
         !id ||
         !customerId ||
@@ -154,6 +160,12 @@ const customerOrderController = {
       await order.updateOne({
         $set: { ...req.body.data, orderCode: orderCode },
       });
+      if (orderDiscountId) {
+        const discount = await Discount.findById(orderDiscountId);
+        if (discount) {
+          await discount.updateOne({ $set: { used: discount.used + 1 } });
+        }
+      }
       res.status(200).json(order.id);
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
@@ -170,6 +182,7 @@ const customerOrderController = {
         customerAddress,
         customerName,
         totalPrices,
+        orderDiscountId,
       } = formValue;
       if (
         !id ||
@@ -185,10 +198,17 @@ const customerOrderController = {
       }
       const date = new Date();
       const orderCode = moment(date).format("HHmmss");
+
       const order = await Order.findById(id);
       await order.updateOne({
         $set: { ...formValue, orderCode: orderCode },
       });
+      if (orderDiscountId) {
+        const discount = await Discount.findById(orderDiscountId);
+        if (discount) {
+          await discount.updateOne({ $set: { used: discount.used + 1 } });
+        }
+      }
 
       process.env.TZ = "Asia/Ho_Chi_Minh";
 
@@ -255,6 +275,17 @@ const customerOrderController = {
       await order.updateOne({
         $set: { checkout: true, status: orderStatuses.ORDERED },
       });
+      order.products.forEach(async (product) => {
+        const productData = await Book.findById(product.productId);
+        await productData.updateOne({
+          $set: {
+            amount: productData.amount + product.amount,
+            saled: productData?.saled
+              ? productData.saled - product.amount
+              : product.amount,
+          },
+        });
+      });
       const responseOrder = await Order.findOne({
         orderCode: id,
         checkout: true,
@@ -266,25 +297,60 @@ const customerOrderController = {
   },
   getAllOrders: async (req, res) => {
     try {
-      const { searchKey, page, size } = req.query;
+      const { page, size, customerId, status } = req.query;
       const pageParam = page ? parseInt(page) : 0;
       const sizeParam = size ? parseInt(size) : 10;
-      const searchText = searchKey ? searchKey : "";
-      const ordersCount = await Order.estimatedDocumentCount();
-      const orders = await Order.find({
-        customerName: { $regex: searchText, $options: "i" },
-      })
-        .sort({ createAt: 0 })
+      let queries = {
+        $and: [
+          { customerId: customerId },
+          { status: status ? status : { $nin: [orderStatuses.INCART] } },
+        ],
+      };
+      const ordersCount = await Order.find(queries).count();
+      const orders = await Order.find(queries)
+        .sort({ createdAt: -1 })
         .skip(pageParam * sizeParam)
         .limit(sizeParam)
         .lean();
-      const responseOrder = omitFieldsNotUsingInObject(orders, ["__v"]);
+      const responseOrder = omitFieldsNotUsingInObject(orders, [
+        "__v",
+        "customerId",
+        "customerName",
+        "customerPhoneNumber",
+      ]);
       res.status(200).json({
         data: responseOrder,
         total: ordersCount,
         page: pageParam,
         size: sizeParam,
       });
+    } catch (error) {
+      res.status(500).json(errResponse.SERVER_ERROR);
+    }
+  },
+
+  getDetailOrder: async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        return res.status(200).json(errResponse.BAD_REQUEST);
+      }
+      const order = await Order.findById(id).lean();
+      const { __v, ...other } = order;
+      res.status(200).json(other);
+    } catch (error) {
+      res.status(500).json(errResponse.SERVER_ERROR);
+    }
+  },
+  cancelOrder: async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        return res.status(200).json(errResponse.BAD_REQUEST);
+      }
+      const order = await Order.findById(id);
+      await order.updateOne({ $set: { status: orderStatuses.CANCEL } });
+      res.status(200).json(order.id);
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);
     }

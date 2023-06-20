@@ -111,11 +111,12 @@ const bookController = {
         bestSaled,
         inStock,
         sort,
+        authorId,
+        exceptId,
       } = req.query;
       const pageParam = page ? parseInt(page) : 0;
       const sizeParam = size ? parseInt(size) : 10;
       const searchParam = searchKey ? searchKey : "";
-      const booksCount = await Book.estimatedDocumentCount();
 
       let queries = {
         $and: [
@@ -163,7 +164,20 @@ const bookController = {
           $and: [...queries.$and, { amount: { $gt: 0 } }],
         };
       }
+      if (authorId) {
+        queries = {
+          ...queries,
+          $and: [...queries.$and, { authorId: authorId }],
+        };
+      }
 
+      if (exceptId) {
+        queries = {
+          ...queries,
+          $and: [...queries.$and, { _id: { $nin: [exceptId] } }],
+        };
+      }
+      const booksCount = await Book.find(queries).count();
       const books = await Book.find(queries)
         .sort({ reducedPrice: sort ? sort : 1 })
         .skip(pageParam * sizeParam)

@@ -3,6 +3,7 @@ const { omit } = require("lodash");
 const Order = require("../models/order");
 const User = require("../models/user");
 const Book = require("../models/book");
+const Discount = require("../models/discount");
 const orderStatuses = require("../constants/orderStatus");
 const { omitFieldsNotUsingInObject } = require("../../utils/arrayMethods");
 const { errResponse } = require("../constants/responseMessage");
@@ -10,8 +11,13 @@ const { errResponse } = require("../constants/responseMessage");
 const orderController = {
   addOrder: async (req, res) => {
     try {
-      const { customerId, customerName, products, customerPhoneNumber } =
-        req.body;
+      const {
+        customerId,
+        customerName,
+        products,
+        customerPhoneNumber,
+        orderDiscountId,
+      } = req.body;
       const date = new Date();
       const orderCode = moment(date).format("HHmmss");
       let orderData = { ...req.body, orderCode: orderCode };
@@ -36,6 +42,7 @@ const orderController = {
       const newOrder = new Order(orderData);
       const savedOrder = await newOrder.save();
       if (savedOrder) {
+        //remove product in storage
         const productBought = savedOrder.products;
         productBought.forEach(async (product) => {
           const productData = await Book.findById(product.productId);
@@ -48,6 +55,14 @@ const orderController = {
             },
           });
         });
+
+        //remove coupon in storage
+        if (orderDiscountId) {
+          const discount = await Discount.findById(orderDiscountId);
+          if (discount) {
+            await discount.updateOne({ $set: { used: discount.used + 1 } });
+          }
+        }
       }
       res.status(200).json(savedOrder.id);
     } catch (error) {
@@ -67,6 +82,8 @@ const orderController = {
       }
       if (products && order.status !== status) {
         if (status === orderStatuses.DONE) {
+          console.log(products);
+
           products.forEach(async (product) => {
             const productData = await Book.findById(product.productId);
             await productData.updateOne({
@@ -79,7 +96,7 @@ const orderController = {
             });
           });
         }
-        if (orderStatuses.REPAY) {
+        if (status === orderStatuses.REPAY) {
           products.forEach(async (product) => {
             const productData = await Book.findById(product.productId);
             await productData.updateOne({
@@ -93,7 +110,6 @@ const orderController = {
           });
         }
       }
-
       await order.updateOne({ $set: req.body });
       res.status(200).json(order.id);
     } catch (error) {
@@ -119,11 +135,13 @@ const orderController = {
       const pageParam = page ? parseInt(page) : 0;
       const sizeParam = size ? parseInt(size) : 10;
       const searchText = searchKey ? searchKey : "";
-      const ordersCount = await Order.estimatedDocumentCount();
+      const ordersCount = await Order.find({
+        customerName: { $regex: searchText, $options: "i" },
+      }).count();
       const orders = await Order.find({
         customerName: { $regex: searchText, $options: "i" },
       })
-        .sort({ createAt: 0 })
+        .sort({ createdAt: -1 })
         .skip(pageParam * sizeParam)
         .limit(sizeParam)
         .lean();

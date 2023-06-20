@@ -45,8 +45,9 @@ const middlewareController = {
     };
   },
   verifyProfile: (req, res, next) => {
-    const { user } = req.body;
+    const { user, data } = req.body;
     if (req.params.id === user.id) {
+      req.body = data;
       next();
     } else {
       return res.status(403).json(errResponse.NOT_ALLOWED);
