@@ -10,7 +10,7 @@ const adminAuthController = {
       { id: member.id, roles: member.roles },
       process.env.ACCESS_TOKEN_SECRET,
       {
-        expiresIn: "1h",
+        expiresIn: "1d",
       }
     );
   },

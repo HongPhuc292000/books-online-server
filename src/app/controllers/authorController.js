@@ -48,9 +48,11 @@ const authorController = {
       const searchParam = searchKey ? searchKey : "";
       const authorCount = await Author.find({
         name: { $regex: searchParam, $options: "i" },
+        isDelete: 0,
       }).count();
       const authors = await Author.find({
         name: { $regex: searchParam, $options: "i" },
+        isDelete: 0,
       })
         .sort({ name: 1 })
         .skip(pageParam * sizeParam)
@@ -69,7 +71,9 @@ const authorController = {
   },
   getAuthorToSelect: async (req, res) => {
     try {
-      const authors = await Author.find({}).sort({ name: 1 }).lean();
+      const authors = await Author.find({ isDelete: 0 })
+        .sort({ name: 1 })
+        .lean();
       const responseAuthors = pickFieldsUsingInObject(authors, ["_id", "name"]);
       res.status(200).json(responseAuthors);
     } catch (error) {
@@ -110,13 +114,15 @@ const authorController = {
       if (!req.params.id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      const author = await Author.findById(req.params.id).lean();
-      const imageUrl = author.imageUrl;
-      if (imageUrl) {
-        deleteImage(imageUrl);
-      }
-      await Book.updateMany({ authorId: req.params.id }, { authorId: null });
-      await Author.findByIdAndDelete(req.params.id);
+      // const author = await Author.findById(req.params.id).lean();
+      // const imageUrl = author.imageUrl;
+      // if (imageUrl) {
+      //   deleteImage(imageUrl);
+      // }
+      // await Book.updateMany({ authorId: req.params.id }, { authorId: null });
+      // await Author.findByIdAndDelete(req.params.id);
+      const author = await Author.findById(req.params.id);
+      await author.updateOne({ $set: { isDelete: 1 } });
       res.status(200).json("deleted");
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);

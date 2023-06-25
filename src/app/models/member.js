@@ -13,6 +13,7 @@ const memberSchema = new Schema(
     roles: { type: [String], default: [] },
     gender: { type: String, default: genders.OTHER },
     birthday: String,
+    isDelete: { type: Number, default: 0 },
   },
   {
     timestamps: true,

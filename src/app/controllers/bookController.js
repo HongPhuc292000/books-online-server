@@ -130,6 +130,9 @@ const bookController = {
               },
             ],
           },
+          {
+            isDelete: 0,
+          },
         ],
       };
       if (statuses) {
@@ -239,13 +242,15 @@ const bookController = {
       if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      await Author.updateMany({ bookIds: id }, { $pull: { bookIds: id } });
-      const book = await Book.findById(id).lean();
-      const imageUrl = book.imageUrl;
-      if (imageUrl) {
-        deleteImage(imageUrl);
-      }
-      await Book.findByIdAndDelete(id);
+      // await Author.updateMany({ bookIds: id }, { $pull: { bookIds: id } });
+      // const book = await Book.findById(id).lean();
+      // const imageUrl = book.imageUrl;
+      // if (imageUrl) {
+      //   deleteImage(imageUrl);
+      // }
+      // await Book.findByIdAndDelete(id);
+      const book = await Book.findById(id);
+      await book.updateOne({ $set: { isDelete: 1 } });
       res.status(200).json("deleted");
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);

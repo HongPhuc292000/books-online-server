@@ -7,7 +7,6 @@ const roles = require("../app/constants/roles");
 router.get(
   "/allAuthors",
   middleWareController.verifyToken,
-  middleWareController.verifyRoles(roles.SHOW_LIST_AUTHOR),
   authorController.getAuthorToSelect
 );
 router.get(

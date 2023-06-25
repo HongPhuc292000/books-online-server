@@ -35,15 +35,25 @@ const categoryController = {
       const sizeParam = size ? parseInt(size) : 10;
       const searchKey = req.query.searchKey ? req.query.searchKey : "";
       const categoriesCount = await Category.find({
-        $or: [
-          { name: { $regex: searchKey, $options: "i" } },
-          { type: { $regex: searchKey, $options: "i" } },
+        $and: [
+          {
+            $or: [
+              { name: { $regex: searchKey, $options: "i" } },
+              { type: { $regex: searchKey, $options: "i" } },
+            ],
+          },
+          { isDelete: 0 },
         ],
       }).count();
       const categories = await Category.find({
-        $or: [
-          { name: { $regex: searchKey, $options: "i" } },
-          { type: { $regex: searchKey, $options: "i" } },
+        $and: [
+          {
+            $or: [
+              { name: { $regex: searchKey, $options: "i" } },
+              { type: { $regex: searchKey, $options: "i" } },
+            ],
+          },
+          { isDelete: 0 },
         ],
       })
         .sort({ name: 1 })
@@ -63,7 +73,9 @@ const categoryController = {
   },
   getCategoryToSelect: async (req, res) => {
     try {
-      const authors = await Category.find({}).sort({ name: 1 }).lean();
+      const authors = await Category.find({ isDelete: 0 })
+        .sort({ name: 1 })
+        .lean();
       const responseCategories = pickFieldsUsingInObject(authors, [
         "_id",
         "name",
@@ -79,11 +91,12 @@ const categoryController = {
       if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      await Book.updateMany(
-        { categoryIds: req.params.id },
-        { $pull: { categoryIds: req.params.id } }
-      );
-      await Category.findByIdAndDelete(req.params.id);
+      // await Book.updateMany(
+      //   { categoryIds: req.params.id },
+      //   { $pull: { categoryIds: req.params.id } }
+      // );
+      const category = await Category.findById(req.params.id);
+      await category.updateOne({ $set: { isDelete: 1 } });
       res.status(200).json("deleted");
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);

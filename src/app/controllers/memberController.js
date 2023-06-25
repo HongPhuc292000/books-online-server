@@ -112,6 +112,7 @@ const memberController = {
               },
             ],
           },
+          { isDelete: 0 },
         ],
       };
       if (roles) {
@@ -169,12 +170,8 @@ const memberController = {
       if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      const member = await Member.findById(id).lean();
-      const imageUrl = member.imageUrl;
-      if (imageUrl) {
-        deleteImage(imageUrl);
-      }
-      await Member.findByIdAndDelete(id);
+      const member = await Member.findById(id);
+      await member.updateOne({ $set: { isDelete: 1 } });
       res.status(200).json("deleted");
     } catch {
       res.status(500).json(errResponse.SERVER_ERROR);

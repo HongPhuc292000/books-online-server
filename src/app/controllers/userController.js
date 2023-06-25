@@ -92,24 +92,34 @@ const userController = {
       const sizeParam = size ? parseInt(size) : 10;
       const searchParam = searchKey ? searchKey : "";
       const userCount = await User.find({
-        $or: [
+        $and: [
           {
-            fullname: { $regex: searchParam, $options: "i" },
+            $or: [
+              {
+                fullname: { $regex: searchParam, $options: "i" },
+              },
+              {
+                phoneNumber: { $regex: searchParam, $options: "i" },
+              },
+            ],
           },
-          {
-            phoneNumber: { $regex: searchParam, $options: "i" },
-          },
+          { isDelete: 0 },
         ],
       }).count();
       let members;
       members = await User.find({
-        $or: [
+        $and: [
           {
-            fullname: { $regex: searchParam, $options: "i" },
+            $or: [
+              {
+                fullname: { $regex: searchParam, $options: "i" },
+              },
+              {
+                phoneNumber: { $regex: searchParam, $options: "i" },
+              },
+            ],
           },
-          {
-            phoneNumber: { $regex: searchParam, $options: "i" },
-          },
+          { isDelete: 0 },
         ],
       })
         .sort({ fullname: 1 })
@@ -159,12 +169,8 @@ const userController = {
       if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      const user = await User.findById(id).lean();
-      const imageUrl = user.imageUrl;
-      if (imageUrl) {
-        deleteImage(imageUrl);
-      }
-      await User.findOneAndDelete(id);
+      const user = await User.findById(id);
+      await user.updateOne({ $set: { isDelete: 1 } });
       res.status(200).json("deleted");
     } catch {
       res.status(500).json(errResponse.SERVER_ERROR);

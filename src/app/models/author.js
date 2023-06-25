@@ -7,6 +7,7 @@ const authorSchema = new Schema({
   yearOfBirth: { type: String },
   yearPassed: { type: String },
   description: { type: String },
+  isDelete: { type: Number, default: 0 },
 });
 
 module.exports = mongoose.model("authors", authorSchema);

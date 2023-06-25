@@ -13,6 +13,7 @@ const discountSchema = new Schema({
   used: { type: Number, default: 0 },
   exp: { type: Number },
   enable: { type: Boolean, default: false },
+  isDelete: { type: Number, default: 0 },
 });
 
 module.exports = mongoose.model("discounts", discountSchema);

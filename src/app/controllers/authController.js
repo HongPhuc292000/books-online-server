@@ -7,26 +7,23 @@ const userRole = require("../../utils/constants");
 
 const authController = {
   register: async (req, res, next) => {
-    const { username, password, role, fullname, email } = req.body;
-    if (!username || !password || !fullname || !email) {
+    const { username, password, fullname, phoneNumber } = req.body;
+    if (!username || !password || !fullname || !phoneNumber) {
       res.status(404).json("bad_request");
     } else {
       try {
         const userNameExist = await User.findOne({ username });
-        const emailExist = await User.findOne({ email });
+        const phoneNumberExist = await User.findOne({ phoneNumber });
         if (!!userNameExist) {
           res.status(404).json("username_exist");
-        } else if (!!emailExist) {
+        } else if (!!phoneNumberExist) {
           res.status(404).json("email_exist");
         } else {
-          const salt = await bcrypt.genSalt(10);
-          const hashed = await bcrypt.hash(password, salt);
           const newUser = new User({
             username,
-            password: hashed,
-            role: role ? role : userRole[1],
+            password: password,
             fullname,
-            email,
+            phoneNumber,
           });
           const createdUser = await newUser.save();
           res.json({ username: createdUser.username, password: password });

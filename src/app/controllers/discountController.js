@@ -83,31 +83,41 @@ const discountController = {
         ? maxDate
         : moment(`${fiveYearsAgo}-01-01T00:00:00+07:00`).valueOf();
       const discountsCount = await Discount.find({
-        $or: [
+        $and: [
           {
-            code: { $regex: searchText, $options: "i" },
-            exp: { $gte: minDateParam, $lte: maxDateParam },
-            enable: status ? status : true,
+            $or: [
+              {
+                code: { $regex: searchText, $options: "i" },
+                exp: { $gte: minDateParam, $lte: maxDateParam },
+                enable: status ? status : true,
+              },
+              {
+                type: { $regex: searchText, $options: "i" },
+                exp: { $gte: minDateParam, $lte: maxDateParam },
+                enable: status ? status : false,
+              },
+            ],
           },
-          {
-            type: { $regex: searchText, $options: "i" },
-            exp: { $gte: minDateParam, $lte: maxDateParam },
-            enable: status ? status : false,
-          },
+          { isDelete: 0 },
         ],
       }).count();
       const discounts = await Discount.find({
-        $or: [
+        $and: [
           {
-            code: { $regex: searchText, $options: "i" },
-            exp: { $gte: minDateParam, $lte: maxDateParam },
-            enable: status ? status : true,
+            $or: [
+              {
+                code: { $regex: searchText, $options: "i" },
+                exp: { $gte: minDateParam, $lte: maxDateParam },
+                enable: status ? status : true,
+              },
+              {
+                type: { $regex: searchText, $options: "i" },
+                exp: { $gte: minDateParam, $lte: maxDateParam },
+                enable: status ? status : false,
+              },
+            ],
           },
-          {
-            type: { $regex: searchText, $options: "i" },
-            exp: { $gte: minDateParam, $lte: maxDateParam },
-            enable: status ? status : false,
-          },
+          { isDelete: 0 },
         ],
       })
         .sort({ code: 1 })
@@ -131,10 +141,11 @@ const discountController = {
       if (!id) {
         return res.status(404).json(errResponse.BAD_REQUEST);
       }
-      const discount = await Discount.findById(req.params.id).lean();
+      const discount = await Discount.findById(req.params.id);
       if (discount.used) {
         return res.status(404).json(errResponse.USED_CODE);
       }
+      discount.updateOne({ $set: { isDelete: 1 } });
       res.status(200).json("deleted");
     } catch (error) {
       res.status(500).json(errResponse.SERVER_ERROR);

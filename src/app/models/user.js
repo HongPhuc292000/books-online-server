@@ -13,6 +13,7 @@ const userSchema = new Schema(
     phoneNumber: String,
     gender: { type: String, default: genders.OTHER },
     birthday: String,
+    isDelete: { type: Number, default: 0 },
   },
   {
     timestamps: true,
