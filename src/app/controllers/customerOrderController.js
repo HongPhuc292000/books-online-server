@@ -225,7 +225,7 @@ const customerOrderController = {
       const tmnCode = vnpayConfig.vnp_TmnCode;
       const secretKey = vnpayConfig.vnp_HashSecret;
       let vnpUrl = vnpayConfig.vnp_Url;
-      let returnUrl = vnpayConfig.vnp_ReturnUrl;
+      let returnUrl = process.env.VNP_RETURN_URL;
       let bankCode = "";
 
       let locale = "vn";
