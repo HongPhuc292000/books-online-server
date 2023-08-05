@@ -18,6 +18,7 @@ const bookSchema = new Schema(
     status: { type: String, default: statuses.DISABLE },
     description: { type: String },
     saled: { type: Number, default: 0 },
+    yearPublish: { type: Number },
     isDelete: { type: Number, default: 0 },
   },
   {

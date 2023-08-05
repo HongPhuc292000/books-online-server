@@ -147,14 +147,12 @@ const bookController = {
           $and: [...queries.$and, { categoryIds: { $in: categoryIds } }],
         };
       }
-      if (isNew) {
-        const date = new Date();
-        date.setDate(date.getDate() - 14);
-        queries = {
-          ...queries,
-          $and: [...queries.$and, { createdAt: { $gte: date } }],
-        };
-      }
+      // if (isNew) {
+      //   queries = {
+      //     ...queries,
+      //     $and: [...queries.$and, { yearPublish:  }],
+      //   };
+      // }
       if (bestSaled) {
         queries = {
           ...queries,
@@ -182,7 +180,8 @@ const bookController = {
       }
       const booksCount = await Book.find(queries).count();
       const books = await Book.find(queries)
-        .sort({ reducedPrice: sort ? sort : 1 })
+        // .sort({ reducedPrice: sort ? sort : 1 })
+        .sort({ yearPublish: -1 })
         .skip(pageParam * sizeParam)
         .limit(sizeParam)
         .populate({ path: "authorId", select: "name" })
